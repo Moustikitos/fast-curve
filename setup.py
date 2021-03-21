@@ -62,29 +62,20 @@ class CTypes(Extension):
 class build_ctypes_ext(build_ext):
 
     def __init__(self, *args, **kw):
-        distribution = args[0]
-        # pop args not allowed by build_clib
         build_clib_options = []
-        poped_args = []
         for long_, short, comment in build_clib.user_options:
             build_clib_options.extend([long_, short])
-        for arg in args[0].script_args:
-            if arg.lstrip("-") not in build_clib_options and arg != 'build_ext':
-                poped_args.append(
-                    distribution.script_args.pop(
-                        distribution.script_args.index(arg)
-                    )
-                )
-                sys.argv.pop(sys.argv.index(arg))
         # compile libraries using build_clib command
+        backup = [argv for argv in sys.argv]
+        sys.argv = ['setup.py', 'build_clib'] + [
+            arg for arg in sys.argv if arg.lstrip("-") in build_clib_options
+        ]
         setup(
             libraries=[lib_schnorr, lib_ecdsa],
             cmdclass={"build_ext": build_clib}
         )
-        # append args not allowed by build_clib
-        distribution.script_args.extend(poped_args)
-        sys.argv.extend(poped_args)
         # then initialize custom build_ext command
+        sys.argv = backup
         build_ext.__init__(self, *args, **kw)
 
     def build_extension(self, ext):
