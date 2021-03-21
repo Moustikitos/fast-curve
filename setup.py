@@ -10,32 +10,7 @@ from distutils.command.build_ext import build_ext
 from distutils.command.build_clib import build_clib
 
 
-#: to build a pure .so or .dll file to be used within ctypes
-class CTypes(Extension):
-    pass
-
-
-class build_ctypes_ext(build_ext):
-
-    def build_extension(self, ext):
-        # identify extension type
-        self._ctypes = isinstance(ext, CTypes)
-        return super().build_extension(ext)
-
-    def get_export_symbols(self, ext):
-        if self._ctypes:
-            return ext.export_symbols
-        return super().get_export_symbols(ext)
-
-    def get_ext_filename(self, ext_name):
-        if self._ctypes:
-            return ext_name + (
-                '.dll' if sys.platform.startswith("win") else
-                super().get_ext_filename(ext_name)
-            )
-        return super().get_ext_filename(ext_name)
-
-
+# configure compilation
 extra_compile_args = ["-O2", "-fPIC"]
 include_dirs = [os.path.abspath('./src')]
 libraries = []
@@ -51,6 +26,7 @@ else:
     library_dirs = []
 
 
+# configure libraries
 lib_ecdsa = (
     "ecdsa", {
         "sources": ["src/ecdsa.c"],
@@ -72,6 +48,58 @@ lib_schnorr = (
         "libraries": libraries,
     }
 )
+
+
+#: to build a pure .so or .dll file to be used within ctypes
+class CTypes(Extension):
+    pass
+
+
+class build_ctypes_ext(build_ext):
+
+    def __init__(self, *args, **kw):
+        distribution = args[0]
+        # pop args not allowed by build_clib
+        build_clib_options = []
+        poped_args = []
+        for long_, short, comment in build_clib.user_options:
+            build_clib_options.extend([long_, short])
+        for arg in args[0].script_args:
+            if arg.lstrip("-") not in build_clib_options and arg != 'build_ext':
+                poped_args.append(
+                    distribution.script_args.pop(
+                        distribution.script_args.index(arg)
+                    )
+                )
+                sys.argv.pop(sys.argv.index(arg))
+        # compile libraries using build_clib command
+        setup(
+            libraries=[lib_schnorr, lib_ecdsa],
+            cmdclass={"build_ext": build_clib}
+        )
+        # append args not allowed by build_clib
+        distribution.script_args.extend(poped_args)
+        sys.argv.extend(poped_args)
+        # then initialize custom build_ext command
+        build_ext.__init__(self, *args, **kw)
+
+    def build_extension(self, ext):
+        # identify extension type
+        self._ctypes = isinstance(ext, CTypes)
+        return super().build_extension(ext)
+
+    def get_export_symbols(self, ext):
+        if self._ctypes:
+            return ext.export_symbols
+        return super().get_export_symbols(ext)
+
+    def get_ext_filename(self, ext_name):
+        if self._ctypes:
+            return ext_name + (
+                '.dll' if sys.platform.startswith("win") else
+                super().get_ext_filename(ext_name)
+            )
+        return super().get_ext_filename(ext_name)
 
 
 with open("VERSION") as f1, open("README.md") as f2:
