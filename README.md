@@ -12,7 +12,7 @@ python -m pip install git+https://github.com/Moustikitos/fast-curve.git
 ### Dependencies
 
 ```shell
-sudo apt-get install python3-dev libgmp3-dev
+sudo apt-get install python3-dev libgmp3-dev libgmp3
 ```
 
 ## Quick start
