@@ -111,10 +111,10 @@ class HexSig(ctypes.Structure):
 
     @staticmethod
     def from_raw(raw):
-        return HexSig(raw[:64], raw[64:])
+        return HexSig(raw[:64].lstrip(b"0"), raw[64:].lstrip(b"0"))
 
     def raw(self):
-        return self.r + self.s
+        return self.r.zfill(64) + self.s.zfill(64)
 
 
 _ecdsa = ctypes.CDLL(
@@ -223,10 +223,9 @@ def tagged_hash(tag, msg):
 
 
 def hash_sha256(msg):
-    return _ecdsa.hash_sha256(
-        None,
+    return hashlib.sha256(
         msg if isinstance(msg, bytes) else msg.encode()
-    )
+    ).hexdigest().encode()
 
 
 p = int(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f)

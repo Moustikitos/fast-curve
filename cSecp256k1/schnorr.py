@@ -37,7 +37,7 @@ norr <https://github.com/bcoin-org/bcrypto/blob/v4.1.0/lib/js/schnorr.js>`_
     return bool(_schnorr.bcrypto410_verify(msg, puk.x, puk.y, hS.r, hS.s))
 
 
-def sign(msg, seckey0):
+def sign(msg, seckey0, k=None):
     """
     Generate message signature according to `BIP schnorr <https://github.com/b\
 itcoin/bips/blob/master/bip-0340.mediawiki>`_ spec.
@@ -48,8 +48,9 @@ itcoin/bips/blob/master/bip-0340.mediawiki>`_ spec.
     Returns:
         :class:`bytes`: RAW signature
     """
-    k = rand_k() % n
-    return _schnorr.sign(msg, seckey0, b"%x" % k).contents.raw()
+    if not k:
+        k = b"%064x" % (rand_k() % n)
+    return _schnorr.sign(msg, seckey0, k).contents.raw()
 
 
 # Note that bip schnorr uses a very different public key format (32 bytes) than

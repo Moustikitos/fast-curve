@@ -40,7 +40,7 @@ class TestCSecp256k1Signatures:
 
     def test_schnorr_sign(self, benchmark):
         signer = schnorr.sign
-        sig = benchmark(signer, msg, pr_key)
+        sig = benchmark(signer, msg, pr_key, k)
         assert schnorr.verify(msg, enc_pu_key, sig) is True
 
     def test_C_schnorr_sign(self, benchmark):

@@ -285,11 +285,10 @@ char *hexlify(unsigned char *buffer, const int size) {
 }
 
 
-unsigned char *unhexlify(char *buffer) {
+unsigned char *unhexlify(char *buffer, const int len_buffer) {
     static unsigned char *pbstr;
     unsigned char *bstr;
     char tmp0, tmp1;
-    int len_buffer = strlen(buffer);
 
     bstr = (unsigned char *)malloc(((len_buffer>>1)+1)*sizeof(unsigned char));
     pbstr = bstr;
@@ -318,21 +317,6 @@ EXPORT char *hash_sha256(unsigned char *hash, unsigned char *msg) {
     return (return_ptr == 1 ? hexlify(hash, 32) : NULL);
 }
 
-// EXPORT char *hash_sha256(unsigned char *hash, unsigned char *msg) {
-//     int return_ptr = 0;
-//     if (hash == NULL){
-//         static unsigned char _hash[SHA_DIGESTSIZE];
-//         hash = _hash;
-//         return_ptr = 1;
-//     }
-
-//     SHAobject ctx;
-//     sha_init(&ctx);
-//     sha_update(&ctx, msg, strlen((char *)msg));
-//     sha_final(hash, &ctx);
-
-//     return (return_ptr == 1 ? hexlify(hash, SHA_DIGESTSIZE) : NULL);
-// }
 
 // build point from hexadecimal string absisse value
 EXPORT HexPoint *hex_point_from_hex_x(char *hex) {

@@ -8,11 +8,6 @@ import cSecp256k1 as secp256k1
 
 class TestCSecp256k1Hash:
 
-    def test_hash_sha256(self):
-        msg = os.urandom(32)
-        h = secp256k1._ecdsa.hash_sha256(None, msg)
-        assert h.decode() == hashlib.sha256(msg).hexdigest()
-
     def test_hex_point(self):
         G = secp256k1.PublicKey.decode(secp256k1.G.encode())
         assert G.x == secp256k1.G.x
