@@ -118,7 +118,7 @@ class HexSig(ctypes.Structure):
 
 
 _ecdsa = ctypes.CDLL(
-    os.path.abspath(os.path.join(__path__[0], "ecdsa%s" % EXT))
+    os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
 )
 _ecdsa.py_point_add.restype = ctypes.POINTER(HexPoint)
 _ecdsa.py_point_mul.restype = ctypes.POINTER(HexPoint)
@@ -131,7 +131,7 @@ _ecdsa.hash_sha256.restype = ctypes.c_char_p
 _ecdsa.init()
 
 _schnorr = ctypes.CDLL(
-    os.path.abspath(os.path.join(__path__[0], "schnorr%s" % EXT))
+    os.path.abspath(os.path.join(__path__[0], "_schnorr%s" % EXT))
 )
 _schnorr.sign.restype = ctypes.POINTER(HexSig)
 _schnorr.bcrypto410_sign.restype = ctypes.POINTER(HexSig)
