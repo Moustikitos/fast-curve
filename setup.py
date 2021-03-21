@@ -8,7 +8,11 @@ except ImportError:
     from distutils.core import setup, Extension
 from distutils.command.build_ext import build_ext
 from distutils.command.build_clib import build_clib
+from importlib import machinery
 
+EXT = \
+    ".dll" if sys.platform.startswith("win") else \
+    machinery.all_suffixes()[-1]
 
 # configure compilation
 extra_compile_args = ["-O2", "-fPIC"]
@@ -95,10 +99,7 @@ class build_ctypes_ext(build_ext):
 
     def get_ext_filename(self, ext_name):
         if self._ctypes:
-            return ext_name + (
-                '.dll' if sys.platform.startswith("win") else
-                super().get_ext_filename(ext_name)
-            )
+            return ext_name + EXT
         return super().get_ext_filename(ext_name)
 
 

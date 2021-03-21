@@ -8,10 +8,10 @@ import random
 import hashlib
 import binascii
 
-import importlib
+from importlib import machinery
 EXT = \
     ".dll" if sys.platform.startswith("win") else \
-    importlib.machinery.all_suffixes()[-1]
+    machinery.all_suffixes()[-1]
 
 
 def _setNget(cls, attr, value):
