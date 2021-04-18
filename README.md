@@ -1,23 +1,47 @@
 # fast-curve
-ctypes implementation for bitcoin curve `secp256k1`
+`ctypes` implementation for bitcoin curve `secp256k1`. It is 100 times faster than pure python implementation.
 
-## Install
+## Dependencies
 
-### From github
-
-```shell
-python -m pip install git+https://github.com/Moustikitos/fast-curve.git
-```
-
-### Dependencies
+### Ubuntu
 
 ```shell
 sudo apt-get install python3-dev libgmp3-dev libgmp3
 ```
 
+### Windows
+
+Download [Msys2](https://www.msys2.org) and [install](https://www.msys2.org/#installation)
+it into `C:\Msys` folder, run `MSYS2` and run:
+
+```bash
+pacman -Syu
+```
+
+Download [libgmp](https://gmplib.org/) archive and extract it into `C:\Msys\home\{USER}`
+folder. Then, using MSYS2 from libgmp root folder run:
+
+```bash
+./condigure
+make
+make check
+make install
+```
+
+Use `C:\Msys\mingw64\python.exe` to run install command. The built package
+can be moved into any python 3.x distribution path.
+
+## install command
+
+```shell
+python -m pip install git+https://github.com/Moustikitos/fast-curve.git
+```
+
+
 ## Quick start
 
 ### Algebra
+
 ```python
 >>> import cSecp256k1 as cs
 >>> cs.G
@@ -35,16 +59,10 @@ sudo apt-get install python3-dev libgmp3-dev libgmp3
   x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
   y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
 >
->>> import hashlib
->>> # generate a public key from explicit secret
->>> cs.G * int(hashlib.sha256(b"secret").hexdigest(), 16)
-<secp256k1 point:
-  x:b'a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
-  y:b'924aa2580069952b0140d88de21c367ee4af7c4a906e1498f20ab8f62e4c2921'
->
 ```
 
 ### Public Keys
+
 ```python
 >>> import cSecp256k1 as cs
 >>> # generate a public key from explicit secret
@@ -67,5 +85,89 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 <secp256k1 point:
   x:b'62a775dba8a7b2e6c839073e8300a2ec56c36671a066de92a39f4789eee635d6'
   y:b'858f2ffbe8cfaed3655abcdf7796c8e16a0bb137c84810f200bfb4a37bbb8867'
+>
+```
+
+### Key ring
+
+```python
+>>> import cSecp256k1 as cs
+>>> # generate key pair using passphrase
+>>> k = cs.KeyRing("secret")
+>>> k  # k is a big integer
+19774644322343364210033507226347517504509547448996271814774638767344332546651
+>>> "%64x" % k
+'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b'
+>>> k.puk()  # retrieve associated public key
+<secp256k1 point:
+  x:b'a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
+  y:b'924aa2580069952b0140d88de21c367ee4af7c4a906e1498f20ab8f62e4c2921'
+>
+>>> k.puk().encode() 
+b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
+```
+
+### Isuing signatures
+
+#### Ecdsa
+```python
+>>> import cSecp256k1 as cs
+>>> e = cs.Ecdsa("secret")
+>>> e.sign("simple message as string")
+<secp256k1 signature:
+  r:b'ff5558ac0366bf794c72648cb3fbd591910f599d8a2737fb72820d121d1a704a'
+  s:b'74824580157a04b004609297ca0d92e390e989a38df05ea80753c938b73acf66'
+>
+>>> e.sign("simple message as string", rfc6979=True)
+b'56bc7c5926c8dd2121b42ffb7115e3b545c23c98e310c2dd087bdb0093ed8520'
+<secp256k1 signature:
+  r:b'd7b0a8a15ac4eedb6286a29b6ff25f945b22d75a73763547a9f9b9f4436ece81'
+  s:b'2d919c85e43c5f200b3aa09eec0f1930fee67b4ad19994ab9df2cd85a35eb482'
+>
+>>> sig = e.sign("simple message as string")
+>>> e.verify("simple message as string", sig)
+True
+```
+
+#### Schnorr
+
+```python
+>>> import cSecp256k1 as cs
+>>> s = cs.Schnorr("secret")
+>>> s.sign("simple message as string")  
+<secp256k1 signature:
+  r:b'58957262a9180545d17e05bf16bd429e06f8b2c882e1e9beaf79675b49703dc4'
+  s:b'b1416e5ee442875dacb00dc3c2bd063ab5ee6164d0c1148e6728bc66c1f9bd2b'
+>
+>>> sig = s.sign("simple message as string")
+>>> s.verify("simple message as string", sig)
+True
+>>> # Bcrpt410 Key ring class issues Ark 2.x schnorr signatures
+>>> b = cs.Bcrpt410("secret")
+<secp256k1 signature:
+  r:b'1a7c295db91863b1074a01b356dbd3696ddd9b216bf0784768531aff89a19b66'
+  s:b'319101bfdb251aad868e55e463a252198773fbbb9895e94f3c48dbf409d1c196'
+>
+```
+
+### Signature format
+
+```python
+>>> import cSecp256k1 as cs
+>>> s = cs.Schnorr("secret")
+>>> sig = s.sign("simple message as string")
+>>> sig.raw()
+b'264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43303b3f6aeefe6aee418d578511be88c8a562f906a10ef433f842985be3a6a5db'
+>>> sig.der()
+b'30440220264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff430220303b3f6aeefe6aee418d578511be88c8a562f906a10ef433f842985be3a6a5db'
+>>> cs.HexSig.from_der(sig.der())
+<secp256k1 signature:
+  r:b'264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43'
+  s:b'303b3f6aeefe6aee418d578511be88c8a562f906a10ef433f842985be3a6a5db'
+>
+>>> cs.HexSig.from_raw(sig.raw())
+<secp256k1 signature:
+  r:b'264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43'
+  s:b'303b3f6aeefe6aee418d578511be88c8a562f906a10ef433f842985be3a6a5db'
 >
 ```
