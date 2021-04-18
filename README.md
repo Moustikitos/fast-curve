@@ -12,14 +12,14 @@ sudo apt-get install python3-dev libgmp3-dev libgmp3
 ### Windows
 
 Download [Msys2](https://www.msys2.org) and [install](https://www.msys2.org/#installation)
-it into `C:\Msys` folder, run `MSYS2` and run:
+it into `C:\Msys` folder, run `MSYS2` and execute:
 
 ```bash
 pacman -Syu
 ```
 
 Download [libgmp](https://gmplib.org/) archive and extract it into `C:\Msys\home\{USER}`
-folder. Then, using MSYS2 from libgmp root folder run:
+folder. Then, runing MSYS2 from libgmp root folder execute:
 
 ```bash
 ./condigure
