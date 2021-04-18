@@ -234,3 +234,82 @@ G = HexPoint(
     b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
     b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
 )
+
+
+class KeyRing(int):
+
+    def __new__(self, secret):
+        h = hash_sha256(
+            secret.encode("utf-8") if not isinstance(secret, bytes) else
+            secret
+        )
+        return int.__new__(self, int(h, 16))
+
+    def puk(self):
+        return PublicKey.from_int(self)
+
+    def sig(self, obj):
+        if isinstance(obj, bytes):
+            return (
+                HexSig.from_der if len(obj) > 128 else HexSig.from_raw
+            )(obj)
+        elif isinstance(obj, HexSig):
+            return obj
+        else:
+            raise TypeError("%s is not a valid signature")
+
+
+class Bcrpt410(KeyRing):
+
+    def sign(self, data):
+        return _schnorr.bcrypto410_sign(
+            hash_sha256(data), b"%64x" % self
+        ).contents
+
+    def verify(self, data, sig):
+        msg = hash_sha256(data)
+        hS = self.sig(sig)
+        puk = self.puk()
+        return bool(_schnorr.bcrypto410_verify(msg, puk.x, puk.y, hS.r, hS.s))
+
+
+class Schnorr(KeyRing):
+
+    def sign(self, data, k=None, rfc6979=False):
+        msg = hash_sha256(data)
+        self_ = b"%64x" % self
+        if k is None:
+            if not rfc6979:
+                k = b"%064x" % (rand_k() % n)
+            else:
+                k = b"%064x" % rfc6979_k(
+                    binascii.unhexlify(msg), binascii.unhexlify(self_)
+                )[0]
+        return _schnorr.sign(msg, self_, k).contents
+
+    def verify(self, data, sig):
+        msg = hash_sha256(data)
+        hS = self.sig(sig)
+        puk = self.puk()
+        return bool(_schnorr.verify(msg, puk.x, hS.r, hS.s))
+
+
+class Ecdsa(KeyRing):
+
+    def sign(self, data, k=None, rfc6979=False, canonical=True):
+        msg = hash_sha256(data)
+        self_ = b"%64x" % self
+        if k is None:
+            if not rfc6979:
+                k = b"%064x" % (rand_k() % n)
+            else:
+                k = b"%064x" % rfc6979_k(
+                    binascii.unhexlify(msg), binascii.unhexlify(self_)
+                )[0]
+        return _ecdsa.sign(msg, self_, k, 1 if canonical else 0).contents
+
+    def verify(self, data, sig):
+        msg = hash_sha256(data)
+        hS = self.sig(sig)
+        puk = self.puk()
+        return bool(_ecdsa.verify(msg, puk.x, puk.y, hS.r, hS.s))

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # © Toons
 
-import os
-import hashlib
 import cSecp256k1 as secp256k1
 
 

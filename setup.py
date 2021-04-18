@@ -19,6 +19,7 @@ extra_compile_args = ["-O2", "-fPIC"]
 include_dirs = [os.path.abspath('./src')]
 libraries = []
 if sys.platform.startswith("win"):
+    # configuration using mingw compiler from Msys 2.x installed in C:/
     extra_link_args = [
         "-l:libpython%s.%s.a" % sys.version_info[:2],
         "-l:libgmp.a",
@@ -114,7 +115,10 @@ kw = {
     "long_description": LONG_DESCRIPTION,
     "long_description_content_type": "text/markdown",
     "packages": ["cSecp256k1"],
-    "libraries": [lib_schnorr, lib_ecdsa],
+    "libraries": [
+        lib_schnorr,
+        lib_ecdsa
+    ],
     "ext_modules": [
         CTypes('cSecp256k1._ecdsa', **lib_ecdsa[-1]),
         CTypes('cSecp256k1._schnorr', **lib_schnorr[-1])
