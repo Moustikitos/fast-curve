@@ -140,22 +140,10 @@ _schnorr.init()
 
 
 def rand_k():
-    """Generate a random secp256k-compatible nonce as int."""
     return random.getrandbits(p.bit_length()) % p
 
 
 def rfc6979_k(msg, secret0, V=None):
-    """
-    Generate a deterministic nonce according to
-    [rfc6979 spec](https://tools.ietf.org/html/rfc6979#section-3.2).
-
-    Arguments:
-        msg (bytes): 32-bytes sequence
-        secret0 (bytes): private key
-        V (bytes):
-    Returns:
-        deterministic nonce as int
-    """
     hasher = hashlib.sha256
     if (V is None):
         h1 = msg
