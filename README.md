@@ -88,7 +88,7 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 >
 ```
 
-### Key ring
+### Keyring
 
 ```python
 >>> import cSecp256k1 as cs
