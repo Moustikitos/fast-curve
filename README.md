@@ -107,7 +107,7 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 ```
 
-### Isuing signatures
+### Issuing signatures
 
 #### Ecdsa
 ```python
@@ -119,7 +119,6 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
   s:b'74824580157a04b004609297ca0d92e390e989a38df05ea80753c938b73acf66'
 >
 >>> e.sign("simple message as string", rfc6979=True)
-b'56bc7c5926c8dd2121b42ffb7115e3b545c23c98e310c2dd087bdb0093ed8520'
 <secp256k1 signature:
   r:b'd7b0a8a15ac4eedb6286a29b6ff25f945b22d75a73763547a9f9b9f4436ece81'
   s:b'2d919c85e43c5f200b3aa09eec0f1930fee67b4ad19994ab9df2cd85a35eb482'
