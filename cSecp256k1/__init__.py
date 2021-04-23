@@ -6,6 +6,7 @@ import hmac
 import ctypes
 import random
 import hashlib
+import getpass
 import binascii
 
 from importlib import machinery
@@ -226,7 +227,9 @@ G = HexPoint(
 
 class KeyRing(int):
 
-    def __new__(self, secret):
+    def __new__(self, secret=None):
+        if secret is None:
+            secret = getpass.getpass("Type or paste your passphrase > ")
         h = hash_sha256(
             secret.encode("utf-8") if not isinstance(secret, bytes) else
             secret
