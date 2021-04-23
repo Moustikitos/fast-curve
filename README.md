@@ -144,12 +144,6 @@ True
 >>> sig = s.sign("simple message as string")
 >>> s.verify("simple message as string", sig)
 True
->>> # Bcrpt410 Key ring class issues Ark 2.x schnorr signatures
->>> b = cs.Bcrpt410("secret")
-<secp256k1 signature:
-  r:b'1a7c295db91863b1074a01b356dbd3696ddd9b216bf0784768531aff89a19b66'
-  s:b'319101bfdb251aad868e55e463a252198773fbbb9895e94f3c48dbf409d1c196'
->
 ```
 
 ### Signature format
