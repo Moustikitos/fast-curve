@@ -37,9 +37,8 @@ can be moved into any python 3.x distribution path.
 python -m pip install git+https://github.com/Moustikitos/fast-curve.git
 ```
 
-### Windows
-
-A build package is available [here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.0-win32.7z).
+For **Windows users**, a build package is available
+[here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.0-win32.7z).
 Exctract content anywhere in python path defined by `sys.path`
 
 ## Quick start
