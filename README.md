@@ -170,3 +170,29 @@ b'30440220264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43022030
   s:b'303b3f6aeefe6aee418d578511be88c8a562f906a10ef433f842985be3a6a5db'
 >
 ```
+
+### Issuing Ark signatures
+
+**arky delegate private key used here**
+
+#### ECDSA (DER)
+```python
+>>> import cSecp256k1 as cs
+>>> # if no secret given, it is asked via terminal input
+>>> e = cs.Ecdsa()
+Type or paste your passphrase >
+>>> sig = e.sign("simple message", rfc6979=True, canonical=True)
+>>> sig.der().encode()
+'3045022100f6f8e63b02d8a729ab8aca1a49348463ddb35ee1b27e07002ffb2be49ce3058502206cf2827da8c4a52c32e2235d6558ccdcc49fabe2da7466a1472b41d6e50ad3a4'
+```
+
+#### Schnorr (RAW)
+```python
+>>> import cSecp256k1 as cs
+>>> # ark uses bcrypto 4.10 schnorr signature
+>>> b = cs.Bcrpt410()
+Type or paste your passphrase >
+>>> sig = b.sign("simple message") 
+>>> sig.raw().decode()
+'928956e9f4bc1694521eea7dd72be706b26c2b4945b7c36e4f384d81a2292e71c2dda0a3e1c2a96578bb552a6f8e652014b4333bb37449f08b1e4f0076b3dd9f'
+```
