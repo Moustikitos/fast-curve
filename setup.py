@@ -8,11 +8,17 @@ except ImportError:
     from distutils.core import setup, Extension
 from distutils.command.build_ext import build_ext
 from distutils.command.build_clib import build_clib
-from importlib import machinery
 
-EXT = \
-    ".dll" if sys.platform.startswith("win") else \
-    machinery.all_suffixes()[-1]
+try:
+    from importlib import machinery
+    lib_suffix = machinery.all_suffixes()[-1]
+    install_requires = []
+except ImportError:
+    import imp
+    lib_suffix = imp.get_suffixes()[0][0]
+    install_requires = ['future']
+
+EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
 
 # configure compilation
 extra_compile_args = ["-O2", "-fPIC"]
@@ -115,6 +121,8 @@ kw = {
     "long_description": LONG_DESCRIPTION,
     "long_description_content_type": "text/markdown",
     "packages": ["cSecp256k1"],
+    "install_requires": install_requires,
+    "tests_requires": ["pytest", "pytest-benchmark"],
     "libraries": [
         lib_schnorr,
         lib_ecdsa
