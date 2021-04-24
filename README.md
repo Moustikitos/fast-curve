@@ -1,5 +1,5 @@
 # fast-curve
-`ctypes` implementation for bitcoin curve `secp256k1`. It is 100 times faster than pure python implementation.
+`ctypes` implementation for bitcoin curve `secp256k1`. It is 100 times faster than pure python implementation and may be even faster if used in lower level development languages.
 
 ### Support this project
  
@@ -47,7 +47,7 @@ can be moved into any python 3.x distribution path.
 python -m pip install git+https://github.com/Moustikitos/fast-curve.git
 ```
 
-For **Windows users**, a build package is available
+For **Windows users**, a built package is available
 [here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.0-win32.7z).
 Exctract content anywhere in python path defined by `sys.path`.
 
@@ -158,6 +158,10 @@ True
 
 ### Signature format
 
+An elliptic curve digital signature is a set of two integers, `r` and `s`.
+There are several ways to represent such signature with a string. `cSec256k1`
+package implements 2 of them: `RAW` and `DER`.
+
 ```python
 >>> import cSecp256k1 as cs
 >>> s = cs.Schnorr("secret")
@@ -180,7 +184,7 @@ b'30440220264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43022030
 
 ### Issuing Ark signatures
 
-**arky delegate private key used here**
+**`arky` delegate private key used here**.
 
 #### ECDSA (DER)
 ```python
