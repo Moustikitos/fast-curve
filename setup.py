@@ -111,7 +111,7 @@ kw = {
     "download_url":
         "https://github.com/Moustikitos/fast-curve/archive/master.zip",
     "include_package_data": True,
-    "description": "Pure python implementation for bitcoin curve",
+    "description": "Fast python implementation for bitcoin curve",
     "long_description": LONG_DESCRIPTION,
     "long_description_content_type": "text/markdown",
     "packages": ["cSecp256k1"],
