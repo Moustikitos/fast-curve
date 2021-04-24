@@ -9,10 +9,16 @@ import hashlib
 import getpass
 import binascii
 
-from importlib import machinery
-EXT = \
-    ".dll" if sys.platform.startswith("win") else \
-    machinery.all_suffixes()[-1]
+try:
+    from importlib import machinery
+    lib_suffix = machinery.all_suffixes()[-1]
+except ImportError:
+    import imp
+    import future
+    from builtins import int, bytes
+    lib_suffix = imp.get_suffixes()[0][0]
+
+EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
 
 
 def _setNget(cls, attr, value):
