@@ -267,7 +267,7 @@ EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
 }
 
 
-char *hexlify(unsigned char *buffer, const int size) {
+EXPORT char *hexlify(unsigned char *buffer, const int size) {
     static char *hex;
     char v2a[] = "0123456789abcdef";
     char *phex, tmp;
@@ -285,23 +285,23 @@ char *hexlify(unsigned char *buffer, const int size) {
 }
 
 
-unsigned char *unhexlify(char *buffer, const int len_buffer) {
-    static unsigned char *pbstr;
-    unsigned char *bstr;
-    char tmp0, tmp1;
+// EXPORT unsigned char *unhexlify(char *buffer, const int len_buffer) {
+//     static unsigned char *pbstr;
+//     unsigned char *bstr;
+//     char tmp0, tmp1;
 
-    bstr = (unsigned char *)malloc(((len_buffer>>1)+1)*sizeof(unsigned char));
-    pbstr = bstr;
-    for (int i = 0; i < len_buffer; i += 2) {
-        tmp0 = buffer[i]; tmp1 = buffer[i+1];
-        *bstr++ = (A2V(tmp0) << 4) | A2V(tmp1);
-    }
-    *bstr++ = '\0';
-    return pbstr;
-}
+//     bstr = (unsigned char *)malloc(((len_buffer>>1)+1)*sizeof(unsigned char));
+//     pbstr = bstr;
+//     for (int i = 0; i < len_buffer; i += 2) {
+//         tmp0 = buffer[i]; tmp1 = buffer[i+1];
+//         *bstr++ = (A2V(tmp0) << 4) | A2V(tmp1);
+//     }
+//     *bstr++ = '\0';
+//     return pbstr;
+// }
 
 
-EXPORT char *hash_sha256(unsigned char *hash, unsigned char *msg) {
+EXPORT char *hash_sha256(unsigned char *hash, char *msg) {
     int return_ptr = 0;
     if (hash == NULL){
         static unsigned char _hash[32];
