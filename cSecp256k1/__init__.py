@@ -10,17 +10,22 @@ import getpass
 import binascii
 
 try:
+    # python 3.x
     from importlib import machinery
     lib_suffix = machinery.all_suffixes()[-1]
 except ImportError:
+    # python 2.x
     import imp
     import future
     from builtins import int, bytes
     lib_suffix = imp.get_suffixes()[0][0]
 
+# on win32 platform python extensions are *.pyd, *.dll is needed
 EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
 
 
+#: try to get attribute `attr` from class `cls`. If not found set it and return
+#: value
 def _setNget(cls, attr, value):
     v = getattr(cls, attr, None)
     if v != value:
@@ -30,6 +35,43 @@ def _setNget(cls, attr, value):
 
 
 class HexPoint(ctypes.Structure):
+    """
+    `ctypes` structure for secp256k1 curve point with `x`and `y` attributes
+    as hex bytes.
+
+    Attributes:
+        x (bytes): point absisse as hex bytes
+        y (bytes): point ordinate as hex bytes
+
+    ```python
+    >>> import cSecp256k1 as cs
+    >>> G = cs.HexPoint(
+    ...    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    ...    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+    )
+    >>> G.x  # return x value as hex bytes
+    b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+    >>> G[0]  # return x value as integer
+    55066263022277343669578718895168534326250603453777594175500187360389116729\
+    240
+    ```
+
+    Eliptic curve algebra is implented with python operator `+` and `*`.
+
+    ```python
+    >>> G * 2
+    <secp256k1 point:
+        x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+        y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+    >
+    >>> G + G
+    <secp256k1 point:
+        x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+        y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+    >
+    ```
+    """
+
     _fields_ = [
         ("x", ctypes.c_char * 65),
         ("y", ctypes.c_char * 65),
@@ -59,10 +101,12 @@ class HexPoint(ctypes.Structure):
         return getattr(self, "_y", _setNget(self, "_y", int(self.y, 16)))
 
     @staticmethod
-    def from_int(x):
-        return _ecdsa.hex_point_from_hex_x(b"%064x" % x).contents
+    def from_int(value):
+        """Build curve point from integer value"""
+        return _ecdsa.hex_point_from_hex_x(b"%064x" % value).contents
 
     def encode(self):
+        """Encode point as a hex bytes"""
         return _ecdsa.encoded_from_hex_puk(self.x, self.y)
 
 
@@ -116,13 +160,22 @@ class HexSig(ctypes.Structure):
             b"%064x" % int.from_bytes(sig[s_offset:s_offset + s_len], "big")
         )
 
+    def raw(self):
+        return self.r.zfill(64) + self.s.zfill(64)
+
     @staticmethod
     def from_raw(raw):
         return HexSig(raw[:64].lstrip(b"0"), raw[64:].lstrip(b"0"))
 
-    def raw(self):
-        return self.r.zfill(64) + self.s.zfill(64)
 
+# ### SECP256K1 CONSTANTS ###
+p = int(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f)
+n = int(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141)
+G = HexPoint(
+    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+)
+# ###
 
 _ecdsa = ctypes.CDLL(
     os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
@@ -221,14 +274,6 @@ def hash_sha256(msg):
     return hashlib.sha256(
         msg if isinstance(msg, bytes) else msg.encode()
     ).hexdigest().encode()
-
-
-p = int(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f)
-n = int(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141)
-G = HexPoint(
-    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
-)
 
 
 class KeyRing(int):
