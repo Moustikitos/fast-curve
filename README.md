@@ -48,7 +48,7 @@ python -m pip install git+https://github.com/Moustikitos/fast-curve.git
 ```
 
 For **Windows users**, a built package is available
-[here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.1-win32.7z).
+[here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.2-win32.7z).
 Exctract content anywhere in python path defined by `sys.path`.
 
 ## Quick start
