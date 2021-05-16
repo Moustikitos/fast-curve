@@ -6,7 +6,7 @@
 #include "sha256.h"
 
 
-#define A2V(c) ((c) <= '9') ? (c) - '0' : ((c) <= 'f') ? (c) - 'a' + 10 : ((c) <= 'F') ? (c) - 'A' + 10 : 0
+// #define A2V(c) ((c) <= '9') ? (c) - '0' : ((c) <= 'f') ? (c) - 'a' + 10 : ((c) <= 'F') ? (c) - 'A' + 10 : 0
 
 
 #if __linux__ 
@@ -267,15 +267,15 @@ EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
 }
 
 
-EXPORT char *hexlify(unsigned char *buffer, const int size) {
+EXPORT char *hexlify(unsigned char *buffer, const int len_buffer) {
     static char *hex;
     char v2a[] = "0123456789abcdef";
     char *phex, tmp;
-    int len = (size << 1);
+    int len = (len_buffer << 1);
 
     hex = (char *)malloc((len + 1)*sizeof(char));
     phex = hex;
-    for(int i=0; i<size; i++) {
+    for(int i=0; i<len_buffer; i++) {
         tmp = buffer[i];
         *phex++ = v2a[(tmp >> 4) & 0x0F];
         *phex++ = v2a[tmp & 0x0F];
@@ -285,23 +285,31 @@ EXPORT char *hexlify(unsigned char *buffer, const int size) {
 }
 
 
-// EXPORT unsigned char *unhexlify(char *buffer, const int len_buffer) {
-//     static unsigned char *pbstr;
-//     unsigned char *bstr;
-//     char tmp0, tmp1;
-
-//     bstr = (unsigned char *)malloc(((len_buffer>>1)+1)*sizeof(unsigned char));
-//     pbstr = bstr;
-//     for (int i = 0; i < len_buffer; i += 2) {
-//         tmp0 = buffer[i]; tmp1 = buffer[i+1];
-//         *bstr++ = (A2V(tmp0) << 4) | A2V(tmp1);
-//     }
-//     *bstr++ = '\0';
-//     return pbstr;
-// }
+int A2V(char c) {
+    if ((c >= '0') && (c <= '9')){
+        return c - '0';
+    }
+    if ((c >= 'a') && (c <= 'f')){
+        return c - 'a' + 10;
+    }
+    else return 0;
+}
 
 
-EXPORT char *hash_sha256(unsigned char *hash, char *msg) {
+EXPORT unsigned char *unhexlify(char *buffer, const int len_buffer) {
+    static unsigned char *bstr;
+    int len = (len_buffer>>1);
+
+    bstr = (unsigned char *)malloc((len+1)*sizeof(unsigned char));
+    for (int i = 0; i < len; i++) {
+        bstr[i] = (A2V(buffer[i<<1]) << 4) + A2V(buffer[(i<<1)+1]);
+    }
+    bstr[len] = '\0';
+    return bstr;
+}
+
+
+EXPORT char *hash_sha256(unsigned char *hash, unsigned char *msg) {
     int return_ptr = 0;
     if (hash == NULL){
         static unsigned char _hash[32];
@@ -311,7 +319,7 @@ EXPORT char *hash_sha256(unsigned char *hash, char *msg) {
 
     SHA256_CTX ctx;
     sha256_init(&ctx);
-    sha256_update(&ctx, msg, strlen((char *)msg));
+    sha256_update(&ctx, msg, strlen((unsigned char *)msg));
     sha256_final(&ctx, hash);
 
     return (return_ptr == 1 ? hexlify(hash, 32) : NULL);

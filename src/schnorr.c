@@ -13,7 +13,7 @@ EXPORT char *tagged_hash(unsigned char *hash, char *tag, char *msg) {
 
     int len_msg = strlen(msg);
     char cat[65 + len_msg];
-    char *tag_hash = hash_sha256(NULL, tag);
+    char *tag_hash = hash_sha256(NULL, unhexlify(tag, strlen(tag)));
 
     int i;
     for (i=0; i < 32; i++){cat[i] = tag_hash[i];}
@@ -21,9 +21,9 @@ EXPORT char *tagged_hash(unsigned char *hash, char *tag, char *msg) {
     for (i=64; i < 64+len_msg; i++){cat[i] = msg[i-64];}
     cat[i] = '\0';
     if (return_ptr == 1) {
-        return hash_sha256(NULL, cat);
+        return hash_sha256(NULL, unhexlify(cat, i));
     } else {
-        hash_sha256(hash, cat);
+        hash_sha256(hash, unhexlify(cat, i));
         return NULL;
     }
 }
@@ -131,18 +131,22 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     len_digest = strlen(digest);
     mpz_init_set_str(msg, digest, 16);
     mpz_init_set_str(d0, secret, 16);
+    // gmp_printf("%Zx\n", msg);
+    // gmp_printf("%Zx\n", d0);
     
     mpz_t k; 
     char to_hash[131 + len_digest];
     for (i=0; i < 64; i++){to_hash[i] = secret[i];}
     for (i=64; i < 64+len_digest; i++){to_hash[i] = digest[i-64];}
     to_hash[i] = '\0';
-    mpz_init_set_str(k, hash_sha256(NULL, to_hash), 16);
+    mpz_init_set_str(k, hash_sha256(NULL, unhexlify(to_hash, i)), 16);
+    // gmp_printf("hash = %s\n", hash_sha256(NULL, unhexlify(to_hash, i)));
     mpz_mod(k, k, n);
     if (mpz_cmp_ui(k, 0) == 0){
         mpz_clears(k, d0, msg, NULL);
         return &hS;
     }
+    // gmp_printf(">>> k = %Zx\n", k);
 
     Point R;
     point_mul(&R, &G, k);
@@ -160,8 +164,9 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     for (i=66; i < 130; i++){to_hash[i] = xP[i-66];}
     for (i=130; i < 130+len_digest; i++){to_hash[i] = digest[i-130];}
     to_hash[i] = '\0';
-    mpz_init_set_str(e, hash_sha256(NULL, to_hash), 16);
+    mpz_init_set_str(e, hash_sha256(NULL, unhexlify(to_hash, i)), 16);
     mpz_mod(e, e, n);
+    // gmp_printf(">>> e = %Zx\n", e);
 
     mpz_mul(e, e, d0);
     mpz_add(e, k, e);
@@ -193,7 +198,7 @@ EXPORT short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     for (i=66; i < 130; i++){to_hash[i] = x[i-66];}
     for (i=130; i < 130+len_msg; i++){to_hash[i] = msg[i-130];}
     to_hash[i] = '\0';
-    mpz_init_set_str(e, hash_sha256(NULL, to_hash), 16);
+    mpz_init_set_str(e, hash_sha256(NULL, unhexlify(to_hash, i)), 16);
     mpz_mod(e, e, n);
 
     Point P;

@@ -8,7 +8,7 @@ from cSecp256k1 import _schnorr
 
 
 msg = secp256k1.hash_sha256(b"message to sign")
-_msg = secp256k1.hash_sha256(b"bad message to sign")
+_msg = secp256k1.hash_sha256(b"bad message to check")
 pr_key = secp256k1.hash_sha256(b"secret")
 pu_key = secp256k1.PublicKey.from_secret(b"secret")
 enc_pu_key = secp256k1.PublicKey.from_secret(b"secret").encode()
@@ -45,3 +45,20 @@ class TestCSecp256k1Signatures:
         assert _schnorr.bcrypto410_verify(
             _msg, pu_key.x, pu_key.y, sig.r, sig.s
         ) != 1
+
+
+try:
+    from pySecp256k1 import schnorr
+    import binascii
+
+    class TestCompare:
+        def test_schnorr(self):
+            signer = _schnorr.bcrypto410_sign
+            sig = signer(msg, pr_key).contents
+            assert sig.raw() == binascii.hexlify(
+                schnorr.bcrypto410_sign(
+                    binascii.unhexlify(msg), binascii.unhexlify(pr_key)
+                )
+            )
+except ImportError:
+    pass

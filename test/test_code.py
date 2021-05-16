@@ -24,18 +24,13 @@ class TestCSecp256k1Hash:
         c_h = secp256k1._schnorr.hash_sha256(None, b"secret")
         assert py_h == c_h
 
-    # def test_hexlification(self):
-    #     secp256k1._schnorr.unhexlify.restype = ctypes.c_char_p
-    #     hexa = b"736563726574"
-    #     unhexlified = secp256k1._schnorr.unhexlify(
-    #         ctypes.byref(
-    #             ctypes.c_char_p(hexa)
-    #         ), len(hexa)
-    #     )
-    #     print(unhexlified)
-    #     secp256k1._schnorr.hexlify.restype = ctypes.c_char_p
-    #     assert hexa == secp256k1._schnorr.hexlify(
-    #         ctypes.byref(
-    #             ctypes.c_char_p(unhexlified)
-    #         ), len(unhexlified)
-    #     )
+    def test_hexlification(self):
+        secp256k1._schnorr.unhexlify.restype = ctypes.c_char_p
+        secp256k1._schnorr.hexlify.restype = ctypes.c_char_p
+        hexlified = secp256k1._schnorr.hexlify(
+            ctypes.c_char_p(b"secret"), 6
+        )
+        unhexlified = secp256k1._schnorr.unhexlify(
+            ctypes.c_char_p(hexlified), len(hexlified)
+        )
+        assert unhexlified == b"secret"
