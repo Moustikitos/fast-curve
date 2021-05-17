@@ -279,7 +279,9 @@ def hash_sha256(msg):
 class KeyRing(int):
 
     def __new__(self, secret=None):
-        if secret is None:
+        if isinstance(secret, int):
+            return int.__new__(self, secret)
+        elif secret is None:
             secret = getpass.getpass("Type or paste your passphrase > ")
         h = hash_sha256(
             secret.encode("utf-8") if not isinstance(secret, bytes) else
