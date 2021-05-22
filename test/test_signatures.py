@@ -30,12 +30,6 @@ class TestCSecp256k1Signatures:
         assert _ecdsa.verify(msg, pu_key.x, pu_key.y, sig.r, sig.s) == 1
         assert _ecdsa.verify(_msg, pu_key.x, pu_key.y, sig.r, sig.s) != 1
 
-    def test_C_schnorr_sign(self, benchmark):
-        signer = _schnorr.sign
-        sig = benchmark(signer, msg, pr_key, k).contents
-        assert _schnorr.verify(msg, pu_key.x, sig.r, sig.s) == 1
-        assert _schnorr.verify(_msg, pu_key.x, sig.r, sig.s) != 1
-
     def test_C_schnorr_bcrypto410_sign(self, benchmark):
         signer = _schnorr.bcrypto410_sign
         sig = benchmark(signer, msg, pr_key).contents

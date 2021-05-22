@@ -3,7 +3,6 @@
 
 import os
 import io
-import ctypes
 import cSecp256k1 as secp256k1
 
 
@@ -31,7 +30,7 @@ def read_vector(v):
 
 class TestSchnorrVectors:
 
-    def testVector1to3(self):
+    def testVector0to2(self):
         for v in VECTORS[:3]:
             secret0, pubkey, rnd, msg, sig, result = read_vector(v)
             print("secret0 =", secret0)
@@ -45,7 +44,7 @@ class TestSchnorrVectors:
                 sig
             ) == result
 
-    def testVector4(self):
+    def testVector3(self):
         secret0, pubkey, rnd, msg, sig, result = read_vector(VECTORS[3])
         print("secret0 =", secret0)
         print("pubkey =", pubkey)
@@ -56,28 +55,16 @@ class TestSchnorrVectors:
         assert (
             secp256k1._schnorr.sign(msg, secret0, rnd).contents.raw() ==
             sig
-        )
+        ) == result
 
-    # def testVector4(self):
-    #     v = VECTORS[3]
-    #     pubkey = binascii.unhexlify(v["public key"])
-    #     msg = binascii.unhexlify(v["message"])
-    #     sig = binascii.unhexlify(v["signature"])
+    def testVector4to14(self):
+        for v in VECTORS[4:]:
+            secret0, pubkey, rnd, msg, sig, result = read_vector(VECTORS[4])
+            print("pubkey =", pubkey)
+            print("msg =", msg)
+            print("sig =", sig)
 
-    #     msg_mod_p = schnorr.bytes_from_int(
-    #         schnorr.int_from_bytes(msg) % schnorr.p
-    #     )
-    #     self.assertEqual(False, schnorr.verify(msg_mod_p, pubkey, sig))
-    #     msg_mod_n = schnorr.bytes_from_int(
-    #         schnorr.int_from_bytes(msg) % schnorr.n
-    #     )
-    #     self.assertEqual(False, schnorr.verify(msg_mod_n, pubkey, sig))
-
-    # def testVector5(self):
-    #     v = VECTORS[4]
-    #     pubkey = binascii.unhexlify(v["public key"])
-    #     msg = binascii.unhexlify(v["message"])
-    #     sig = binascii.unhexlify(v["signature"])
-    #     result = v["verification result"] == 'True'
-    #     self.assertRaises(ValueError, schnorr.point_from_encoded, pubkey)
-    #     self.assertEqual(result, schnorr.verify(msg, pubkey, sig))
+            r, s = sig[:64], sig[64:]
+            assert (
+                secp256k1._schnorr.verify(msg, pubkey, r, s) == 1
+            ) == result

@@ -46,8 +46,8 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     mpz_xor(t, d0, t);
     mpz_get_str(hex_t, 16, t);
 
-    // bugfix test vector #3
-    // check if len hex_t == 64 and left fill with '0'
+    // test vector #3 fix
+    // check if len hex_t == 64 and left fill with '0' if not
     size_t len_t = strlen(hex_t);
     size_t delta = 64 - len_t;
     if (delta > 0){
@@ -59,7 +59,7 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     for (i=128; i < 128+len_digest; i++){to_tag_hash[i] = digest[i-128];}
     to_tag_hash[i] = '\0';
     
-    mpz_init_set_str(k, tagged_hash(NULL, "BIP0340/nonce", to_tag_hash, 128 + len_digest), 16);
+    mpz_init_set_str(k, tagged_hash(NULL, "BIP0340/nonce", to_tag_hash, 128+len_digest), 16);
     mpz_mod(k, k, n);
 
     if (mpz_cmp_ui(k, 0) == 0){return &hS;}
@@ -71,7 +71,7 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     mpz_get_str(hS.r, 16, R.x);
     mpz_get_str(xP, 16, P.x);
     for (i=0; i < 64; i++){to_tag_hash[i] = hS.r[i];}
-    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, 128 + len_digest), 16);
+    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, 128+len_digest), 16);
     mpz_mod(e, e, n);
 
     mpz_mul(e, e, d0);
@@ -86,21 +86,25 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
 
 EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
     Point P;
+    mpz_t big1;
     mpz_init_set_str(P.x, x, 16);
+    mpz_init_set_ui(big1, 1);
     mpz_init(P.y);
     y_from_x(P.y, P.x);
+    // if y & 1 != 0:
+    //     y = p-y
+    mpz_and(big1, P.y, big1);
+    if (mpz_cmp_ui(big1, 0) != 0){mpz_sub(P.y, p, P.y);}
     if (mpz_cmp(P.x, p) >= 0 || mpz_cmp_ui(P.y, 0) == 0){
-        mpz_clears(P.x, P.y, NULL);
+        mpz_clears(P.x, P.y, big1, NULL);
         return 0;
-    } else if (mpz_tstbit(P.y, 0) == 0){
-        mpz_sub(P.y, p, P.y);
     }
 
     mpz_t r, s;
     mpz_init_set_str(r, hr, 16);
     mpz_init_set_str(s, hs, 16);
     if (mpz_cmp(r, n) >= 0 || mpz_cmp(s, n) >= 0){
-        mpz_clears(r, s, P.x, P.y, NULL);
+        mpz_clears(r, s, P.x, P.y, big1, NULL);
         return 0;
     }
 
@@ -112,7 +116,7 @@ EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
     for (i=64; i < 128; i++){to_tag_hash[i] = x[i-64];}
     for (i=128; i < 128+len_msg; i++){to_tag_hash[i] = msg[i-128];}
     to_tag_hash[i] = '\0';
-    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, i), 16);
+    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, 128+len_msg), 16);
     mpz_mod(e, e, n);
 
     Point R, Gs;
@@ -122,10 +126,10 @@ EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
     point_add(&R, &Gs, &R);
     
     if (mpz_cmp(R.x, r) == 0){
-        mpz_clears(r, s, e, P.x, P.y, R.x, R.y, Gs.x, Gs.y, NULL);
+        mpz_clears(r, s, e, P.x, P.y, R.x, R.y, Gs.x, Gs.y, big1, NULL);
         return 1;
     }
-    mpz_clears(r, s, e, P.x, P.y, R.x, R.y, Gs.x, Gs.y, NULL);
+    mpz_clears(r, s, e, P.x, P.y, R.x, R.y, Gs.x, Gs.y, big1, NULL);
     return 0;
 }
 

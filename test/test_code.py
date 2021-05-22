@@ -27,10 +27,8 @@ class TestCSecp256k1Hash:
     def test_hexlification(self):
         secp256k1._schnorr.unhexlify.restype = ctypes.c_char_p
         secp256k1._schnorr.hexlify.restype = ctypes.c_char_p
-        hexlified = secp256k1._schnorr.hexlify(
-            ctypes.c_char_p(b"secret"), 6
-        )
+        hexlified = secp256k1._schnorr.hexlify(b"secret", 6)
         unhexlified = secp256k1._schnorr.unhexlify(
-            ctypes.c_char_p(hexlified), len(hexlified)
+            hexlified, len(hexlified)
         )
         assert unhexlified == b"secret"
