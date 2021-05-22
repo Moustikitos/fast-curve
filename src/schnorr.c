@@ -3,7 +3,7 @@
 // https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py
 
 
-EXPORT char *tagged_hash(unsigned char *hash, char *tag, char *msg) {
+EXPORT char *tagged_hash(unsigned char *hash, char *tag, char *msg, int len_msg) {
     int return_ptr = 0;
     if (hash == NULL){
         static unsigned char _hash[33];
@@ -11,19 +11,18 @@ EXPORT char *tagged_hash(unsigned char *hash, char *tag, char *msg) {
         return_ptr = 1;
     }
 
-    int len_msg = strlen(msg);
-    char cat[65 + len_msg];
-    char *tag_hash = hash_sha256(NULL, unhexlify(tag, strlen(tag)));
+    char cat[129 + len_msg];
+    char *tag_hash = hash_sha256(NULL, tag);
 
     int i;
-    for (i=0; i < 32; i++){cat[i] = tag_hash[i];}
-    for (i=32; i < 64; i++){cat[i] = tag_hash[i-32];}
-    for (i=64; i < 64+len_msg; i++){cat[i] = msg[i-64];}
+    for (i=0; i < 64; i++){cat[i] = tag_hash[i];}
+    for (i=64; i < 128; i++){cat[i] = tag_hash[i-64];}
+    for (i=128; i < 128+len_msg; i++){cat[i] = msg[i-128];}
     cat[i] = '\0';
     if (return_ptr == 1) {
-        return hash_sha256(NULL, unhexlify(cat, i));
+        return hash_sha256_s(NULL, unhexlify(cat, i), i>>1);
     } else {
-        hash_sha256(hash, unhexlify(cat, i));
+        hash_sha256_s(hash, unhexlify(cat, i), i>>1);
         return NULL;
     }
 }
@@ -33,26 +32,34 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     static HexSig hS;
     size_t i, len_digest;
     
-    mpz_t d0, msg;
+    mpz_t d0;
     len_digest = strlen(digest);
-    mpz_init_set_str(msg, digest, 16);
     mpz_init_set_str(d0, secret, 16);
-    mpz_mod(d0, d0, n);
     
     Point P;
     mpz_t k, t;
     char xP[65], hex_t[65], to_tag_hash[129 + len_digest];
     point_mul(&P, &G, d0);
-    if (mpz_jacobi(P.y, p) != 1){mpz_sub(d0, n, d0);}
+    if (mpz_fdiv_ui(P.y, 2) != 0){mpz_sub(d0, n, d0);}
     mpz_get_str(xP, 16, P.x);
-    mpz_init_set_str(t, tagged_hash(NULL, "BIP0340/aux", rand), 16);
+    mpz_init_set_str(t, tagged_hash(NULL, "BIP0340/aux", rand, 64), 16);
     mpz_xor(t, d0, t);
     mpz_get_str(hex_t, 16, t);
-    for (i=0; i < 64; i++){to_tag_hash[i] = hex_t[i];}
+
+    // bugfix test vector #3
+    // check if len hex_t == 64 and left fill with '0'
+    size_t len_t = strlen(hex_t);
+    size_t delta = 64 - len_t;
+    if (delta > 0){
+        for (i=0; i < delta; i++){to_tag_hash[i] = '0';}
+    }
+    // and continue concatenation
+    for (i=delta; i < 64; i++){to_tag_hash[i] = hex_t[i-delta];}
     for (i=64; i < 128; i++){to_tag_hash[i] = xP[i-64];}
     for (i=128; i < 128+len_digest; i++){to_tag_hash[i] = digest[i-128];}
     to_tag_hash[i] = '\0';
-    mpz_init_set_str(k, tagged_hash(NULL, "BIP0340/nonce", to_tag_hash), 16);
+    
+    mpz_init_set_str(k, tagged_hash(NULL, "BIP0340/nonce", to_tag_hash, 128 + len_digest), 16);
     mpz_mod(k, k, n);
 
     if (mpz_cmp_ui(k, 0) == 0){return &hS;}
@@ -60,11 +67,11 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     Point R;
     mpz_t e;
     point_mul(&R, &G, k);
-    if (mpz_jacobi(R.y, p) != 1){mpz_sub(k, n, k);}
+    if (mpz_fdiv_ui(R.y, 2) != 0){mpz_sub(k, n, k);}
     mpz_get_str(hS.r, 16, R.x);
     mpz_get_str(xP, 16, P.x);
     for (i=0; i < 64; i++){to_tag_hash[i] = hS.r[i];}
-    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash), 16);
+    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, 128 + len_digest), 16);
     mpz_mod(e, e, n);
 
     mpz_mul(e, e, d0);
@@ -72,7 +79,7 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
     mpz_mod(e, e, n);
     mpz_get_str(hS.s, 16, e);
 
-    mpz_clears(k, t, e, d0, msg, R.x, R.y, P.x, P.y, NULL);
+    mpz_clears(k, t, e, d0, R.x, R.y, P.x, P.y, NULL);
     return &hS;
 }
 
@@ -105,7 +112,7 @@ EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
     for (i=64; i < 128; i++){to_tag_hash[i] = x[i-64];}
     for (i=128; i < 128+len_msg; i++){to_tag_hash[i] = msg[i-128];}
     to_tag_hash[i] = '\0';
-    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash), 16);
+    mpz_init_set_str(e, tagged_hash(NULL, "BIP0340/challenge", to_tag_hash, i), 16);
     mpz_mod(e, e, n);
 
     Point R, Gs;
@@ -131,8 +138,6 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     len_digest = strlen(digest);
     mpz_init_set_str(msg, digest, 16);
     mpz_init_set_str(d0, secret, 16);
-    // gmp_printf("%Zx\n", msg);
-    // gmp_printf("%Zx\n", d0);
     
     mpz_t k; 
     char to_hash[131 + len_digest];
@@ -140,13 +145,11 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     for (i=64; i < 64+len_digest; i++){to_hash[i] = digest[i-64];}
     to_hash[i] = '\0';
     mpz_init_set_str(k, hash_sha256(NULL, unhexlify(to_hash, i)), 16);
-    // gmp_printf("hash = %s\n", hash_sha256(NULL, unhexlify(to_hash, i)));
     mpz_mod(k, k, n);
     if (mpz_cmp_ui(k, 0) == 0){
         mpz_clears(k, d0, msg, NULL);
         return &hS;
     }
-    // gmp_printf(">>> k = %Zx\n", k);
 
     Point R;
     point_mul(&R, &G, k);
@@ -166,7 +169,6 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     to_hash[i] = '\0';
     mpz_init_set_str(e, hash_sha256(NULL, unhexlify(to_hash, i)), 16);
     mpz_mod(e, e, n);
-    // gmp_printf(">>> e = %Zx\n", e);
 
     mpz_mul(e, e, d0);
     mpz_add(e, k, e);

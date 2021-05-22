@@ -326,6 +326,23 @@ EXPORT char *hash_sha256(unsigned char *hash, unsigned char *msg) {
 }
 
 
+EXPORT char *hash_sha256_s(unsigned char *hash, unsigned char *msg, int len_msg) {
+    int return_ptr = 0;
+    if (hash == NULL){
+        static unsigned char _hash[32];
+        hash = _hash;
+        return_ptr = 1;
+    }
+
+    SHA256_CTX ctx;
+    sha256_init(&ctx);
+    sha256_update(&ctx, msg, len_msg);
+    sha256_final(&ctx, hash);
+
+    return (return_ptr == 1 ? hexlify(hash, 32) : NULL);
+}
+
+
 // build point from hexadecimal string absisse value
 EXPORT HexPoint *hex_point_from_hex_x(char *hex) {
     static HexPoint hP;
