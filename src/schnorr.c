@@ -6,7 +6,7 @@
 EXPORT char *tagged_hash(char *tag, char *msg, int len_msg) {
     unsigned char hash[33];
     char cat[129 + len_msg];
-    char *tag_hash = hash_sha256(tag);
+    char *tag_hash = hash_sha256_s(tag, strlen(tag));
 
     int i;
     for (i=0; i < 64; i++){cat[i] = tag_hash[i];}

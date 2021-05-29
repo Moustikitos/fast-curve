@@ -35,17 +35,52 @@ static mpz_t p, n;
 static Point G;
 #endif
 
+
 int A2V(char c) {
     if ((c >= '0') && (c <= '9')){return c - '0';}
     if ((c >= 'a') && (c <= 'f')){return c - 'a' + 10;}
     else return 0;
 }
 
-EXPORT void init() {
-    mpz_init_set_str(p, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", 16);
-    mpz_init_set_str(n, "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
-    mpz_init_set_str(G.x, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16);
-    mpz_init_set_str(G.y, "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16);
+
+char *hexlify(unsigned char *buffer, const int len_buffer) {
+    static char *hex;
+    char v2a[] = "0123456789abcdef";
+    char *phex, tmp;
+    int len = (len_buffer << 1);
+
+    hex = (char *)malloc((len + 1)*sizeof(char));
+    phex = hex;
+    for(int i=0; i<len_buffer; i++) {
+        tmp = buffer[i];
+        *phex++ = v2a[(tmp >> 4) & 0x0F];
+        *phex++ = v2a[tmp & 0x0F];
+    }
+    *phex++ = '\0';
+    return hex;
+}
+
+
+unsigned char *unhexlify(char *buffer, const int len_buffer) {
+    static unsigned char *bstr;
+    int len = (len_buffer>>1);
+
+    bstr = (unsigned char *)malloc((len+1)*sizeof(unsigned char));
+    for (int i = 0; i < len; i++) {
+        bstr[i] = (A2V(buffer[i<<1]) << 4) + A2V(buffer[(i<<1)+1]);
+    }
+    bstr[len] = '\0';
+    return bstr;
+}
+
+
+char *hash_sha256_s(unsigned char *msg, int len_msg) {
+    unsigned char hash[32];
+    SHA256_CTX ctx;
+    sha256_init(&ctx);
+    sha256_update(&ctx, msg, len_msg);
+    sha256_final(&ctx, hash);
+    return hexlify(hash, 32);
 }
 
 
@@ -109,14 +144,6 @@ void y_from_x(mpz_t y, mpz_t x) {
     }
     // return y
     mpz_clears(y_sq, y_2, pp1s4, NULL);
-}
-
-
-EXPORT HexPoint *point_hexlify(Point *P) {
-    static HexPoint hP;
-    mpz_get_str(hP.x, 16, P->x);
-    mpz_get_str(hP.y, 16, P->y);
-    return &hP;
 }
 
 
@@ -192,18 +219,6 @@ void point_add(Point *sum, Point *P1, Point *P2) {
 }
 
 
-// for direct python use with ctypes
-EXPORT HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
-    Point P1, P2, Sum;
-    mpz_init_set_str(P1.x, x1, 16);
-    mpz_init_set_str(P1.y, y1, 16);
-    mpz_init_set_str(P2.x, x2, 16);
-    mpz_init_set_str(P2.y, y2, 16);
-    point_add(&Sum, &P1, &P2);
-    return point_hexlify(&Sum);
-}
-
-
 void point_mul(Point *prod, Point *P, mpz_t n) {
     Point tmp;
     mpz_init_set(tmp.x, P->x);
@@ -225,6 +240,26 @@ void point_mul(Point *prod, Point *P, mpz_t n) {
 }
 
 
+EXPORT HexPoint *point_hexlify(Point *P) {
+    static HexPoint hP;
+    mpz_get_str(hP.x, 16, P->x);
+    mpz_get_str(hP.y, 16, P->y);
+    return &hP;
+}
+
+
+// for direct python use with ctypes
+EXPORT HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
+    Point P1, P2, Sum;
+    mpz_init_set_str(P1.x, x1, 16);
+    mpz_init_set_str(P1.y, y1, 16);
+    mpz_init_set_str(P2.x, x2, 16);
+    mpz_init_set_str(P2.y, y2, 16);
+    point_add(&Sum, &P1, &P2);
+    return point_hexlify(&Sum);
+}
+
+
 // for direct python use with ctypes
 EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
     Point P, Mul;
@@ -234,47 +269,6 @@ EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
     mpz_init_set_str(n, k, 16);
     point_mul(&Mul, &P, n);
     return point_hexlify(&Mul);
-}
-
-
-EXPORT char *hexlify(unsigned char *buffer, const int len_buffer) {
-    static char *hex;
-    char v2a[] = "0123456789abcdef";
-    char *phex, tmp;
-    int len = (len_buffer << 1);
-
-    hex = (char *)malloc((len + 1)*sizeof(char));
-    phex = hex;
-    for(int i=0; i<len_buffer; i++) {
-        tmp = buffer[i];
-        *phex++ = v2a[(tmp >> 4) & 0x0F];
-        *phex++ = v2a[tmp & 0x0F];
-    }
-    *phex++ = '\0';
-    return hex;
-}
-
-
-EXPORT unsigned char *unhexlify(char *buffer, const int len_buffer) {
-    static unsigned char *bstr;
-    int len = (len_buffer>>1);
-
-    bstr = (unsigned char *)malloc((len+1)*sizeof(unsigned char));
-    for (int i = 0; i < len; i++) {
-        bstr[i] = (A2V(buffer[i<<1]) << 4) + A2V(buffer[(i<<1)+1]);
-    }
-    bstr[len] = '\0';
-    return bstr;
-}
-
-
-char *hash_sha256_s(unsigned char *msg, int len_msg) {
-    unsigned char hash[32];
-    SHA256_CTX ctx;
-    sha256_init(&ctx);
-    sha256_update(&ctx, msg, len_msg);
-    sha256_final(&ctx, hash);
-    return hexlify(hash, 32);
 }
 
 
@@ -363,4 +357,12 @@ EXPORT HexPoint *hex_puk_from_hex(char *hex) {
     mpz_get_str(hP.x, 16, tmp.x);
     mpz_get_str(hP.y, 16, tmp.y);
     return &hP;
+}
+
+
+EXPORT void init() {
+    mpz_init_set_str(p, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", 16);
+    mpz_init_set_str(n, "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
+    mpz_init_set_str(G.x, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16);
+    mpz_init_set_str(G.y, "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16);
 }

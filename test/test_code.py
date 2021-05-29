@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # © Toons
 
-import ctypes
 import cSecp256k1 as secp256k1
 
 
@@ -17,18 +16,3 @@ class TestCSecp256k1Hash:
         GpG = secp256k1.G + secp256k1.G
         assert _2G.x == GpG.x
         assert _2G.y == GpG.y
-
-    def test_hash_sha256(self):
-        secp256k1._schnorr.hash_sha256.restype = ctypes.c_char_p
-        py_h = secp256k1.hash_sha256(b"secret")
-        c_h = secp256k1._schnorr.hash_sha256(None, b"secret")
-        assert py_h == c_h
-
-    def test_hexlification(self):
-        secp256k1._schnorr.unhexlify.restype = ctypes.c_char_p
-        secp256k1._schnorr.hexlify.restype = ctypes.c_char_p
-        hexlified = secp256k1._schnorr.hexlify(b"secret", 6)
-        unhexlified = secp256k1._schnorr.unhexlify(
-            hexlified, len(hexlified)
-        )
-        assert unhexlified == b"secret"
