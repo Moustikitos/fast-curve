@@ -1,6 +1,6 @@
 #include "secp256k1.h"
 
-// https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py
+// from https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py
 
 
 EXPORT char *tagged_hash(char *tag, char *msg, int len_msg) {
@@ -123,6 +123,7 @@ EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
 }
 
 
+// from https://github.com/bcoin-org/bcrypto/blob/v4.1.0/lib/js/schnorr.js
 EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
     static HexSig hS;
     size_t i, len_digest;

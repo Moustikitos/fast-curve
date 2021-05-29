@@ -1,8 +1,9 @@
 #include <string.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <limits.h>
 #include <gmp.h>
+
 #include "sha256.h"
 
 #if __linux__ 
@@ -28,7 +29,6 @@ typedef struct {
     char r[65], s[65];
 } HexSig;
 
-// secp256k1 constant as mp values
 #ifndef SECP256K1_CONSTANTS
 #define SECP256K1_CONSTANTS
 static mpz_t p, n;

@@ -102,15 +102,24 @@ class HexPoint(ctypes.Structure):
 
     @staticmethod
     def from_int(value):
-        """Build curve point from integer value"""
+        """Build curve point from integer value."""
         return _ecdsa.hex_point_from_hex_x(b"%064x" % value).contents
 
     def encode(self):
-        """Encode point as a hex bytes"""
+        """Encode point as a hex bytes."""
         return _ecdsa.encoded_from_hex_puk(self.x, self.y)
 
 
 class HexSig(ctypes.Structure):
+    """
+    `ctypes` structure for secp256k1 signature with `r`and `s` attributes
+    as hex bytes.
+
+    Attributes:
+        r (bytes): signature part #1 as hex bytes
+        s (bytes): signature part #2 as hex bytes
+    """
+
     _fields_ = [
         ("r", ctypes.c_char * 65),
         ("s", ctypes.c_char * 65),
@@ -134,6 +143,7 @@ class HexSig(ctypes.Structure):
         return getattr(self, "_s", _setNget(self, "_s", int(self.s, 16)))
 
     def der(self):
+        """Generate DER signature as hexadecimal bytes string."""
         r = self[0].to_bytes(32, byteorder="big")
         s = self[1].to_bytes(32, byteorder="big")
         r = (b'\x00' if (r[0] & 0x80) == 0x80 else b'') + r
@@ -146,6 +156,7 @@ class HexSig(ctypes.Structure):
 
     @staticmethod
     def from_der(der):
+        """Return HexSig object from a DER signature string."""
         sig = bytearray(binascii.unhexlify(der))
         sig_len = sig[1] + 2
         r_offset, r_len = 4, sig[3]
@@ -161,10 +172,12 @@ class HexSig(ctypes.Structure):
         )
 
     def raw(self):
+        """Generate RAW signature as hexadecimal bytes string."""
         return self.r.zfill(64) + self.s.zfill(64)
 
     @staticmethod
     def from_raw(raw):
+        """Return HexSig object from a RAW signature string."""
         return HexSig(raw[:64].lstrip(b"0"), raw[64:].lstrip(b"0"))
 
 
@@ -177,6 +190,7 @@ G = HexPoint(
 )
 # ###
 
+# ### DLL PROTOTYPING
 _ecdsa = ctypes.CDLL(
     os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
 )
@@ -189,7 +203,6 @@ _ecdsa.hex_puk_from_hex.restype = ctypes.POINTER(HexPoint)
 _ecdsa.sign.restype = ctypes.POINTER(HexSig)
 _ecdsa.hash_sha256.restype = ctypes.c_char_p
 _ecdsa.init()
-
 _schnorr = ctypes.CDLL(
     os.path.abspath(os.path.join(__path__[0], "_schnorr%s" % EXT))
 )
@@ -197,13 +210,16 @@ _schnorr.sign.restype = ctypes.POINTER(HexSig)
 _schnorr.bcrypto410_sign.restype = ctypes.POINTER(HexSig)
 _schnorr.tagged_hash.restype = ctypes.c_char_p
 _schnorr.init()
+# ###
 
 
 def rand_k():
+    """Generate a random secp256k1 integer (in range [1..p])."""
     return random.getrandbits(p.bit_length()) % p
 
 
 def rfc6979_k(msg, secret0, V=None):
+    """Generate a deterministic rfc6967 integer."""
     hasher = hashlib.sha256
     if (V is None):
         h1 = msg
@@ -262,30 +278,29 @@ class PublicKey(HexPoint):
         return PublicKey.from_hex(binascii.hexlify(seed))
 
 
-def tagged_hash(tag, msg):
-    return _schnorr.tagged_hash(
-        None,
-        tag if isinstance(tag, bytes) else tag.encode(),
-        msg if isinstance(msg, bytes) else msg.encode()
-    )
-
-
 def hash_sha256(msg):
     return hashlib.sha256(
         msg if isinstance(msg, bytes) else msg.encode()
     ).hexdigest().encode()
 
 
+def tagged_hash(tag, msg):
+    msg = binascii.hexlify(msg if isinstance(msg, bytes) else msg.encode())
+    return _schnorr.tagged_hash(
+        tag if isinstance(tag, bytes) else tag.encode(), msg, len(msg)
+    )
+
+
 class KeyRing(int):
 
-    def __new__(self, secret=None):
-        if isinstance(secret, int):
-            return int.__new__(self, secret)
-        elif secret is None:
-            secret = getpass.getpass("Type or paste your passphrase > ")
+    def __new__(self, obj=None):
+        if isinstance(obj, int):
+            return int.__new__(self, obj)
+        elif obj is None:
+            obj = getpass.getpass("Type or paste your passphrase > ")
         h = hash_sha256(
-            secret.encode("utf-8") if not isinstance(secret, bytes) else
-            secret
+            obj.encode("utf-8") if not isinstance(obj, bytes) else
+            obj
         )
         return int.__new__(self, int(h, 16))
 
