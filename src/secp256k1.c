@@ -1,52 +1,4 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
-#include <gmp.h>
-#include "sha256.h"
-
-#if __linux__ 
-    #define EXPORT extern
-#elif _WIN32
-    #define _USE_MATH_DEFINES // for C
-    #define EXPORT __declspec(dllexport)
-#endif
-
-typedef struct {
-    mpz_t x, y;
-} Point;
-
-typedef struct {
-    char x[65], y[65];
-} HexPoint;
-
-typedef struct {
-    mpz_t r, s;
-} Sig;
-
-typedef struct {
-    char r[65], s[65];
-} HexSig;
-
-// secp256k1 constant as mp values
-#ifndef SECP256K1_CONSTANTS
-#define SECP256K1_CONSTANTS
-static mpz_t p, n;
-static Point G;
-#endif
-
-int A2V(char c) {
-    if ((c >= '0') && (c <= '9')){return c - '0';}
-    if ((c >= 'a') && (c <= 'f')){return c - 'a' + 10;}
-    else return 0;
-}
-
-EXPORT void init() {
-    mpz_init_set_str(p, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", 16);
-    mpz_init_set_str(n, "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
-    mpz_init_set_str(G.x, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16);
-    mpz_init_set_str(G.y, "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16);
-}
+#include "secp256k1.h"
 
 
 short is_infinity(Point *P) {
@@ -112,7 +64,7 @@ void y_from_x(mpz_t y, mpz_t x) {
 }
 
 
-EXPORT HexPoint *point_hexlify(Point *P) {
+HexPoint *point_hexlify(Point *P) {
     static HexPoint hP;
     mpz_get_str(hP.x, 16, P->x);
     mpz_get_str(hP.y, 16, P->y);
@@ -193,7 +145,7 @@ void point_add(Point *sum, Point *P1, Point *P2) {
 
 
 // for direct python use with ctypes
-EXPORT HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
+HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
     Point P1, P2, Sum;
     mpz_init_set_str(P1.x, x1, 16);
     mpz_init_set_str(P1.y, y1, 16);
@@ -226,7 +178,7 @@ void point_mul(Point *prod, Point *P, mpz_t n) {
 
 
 // for direct python use with ctypes
-EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
+HexPoint *py_point_mul(char *x, char*y, char *k) {
     Point P, Mul;
     mpz_t n;
     mpz_init_set_str(P.x, x, 16);
@@ -237,7 +189,7 @@ EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
 }
 
 
-EXPORT char *hexlify(unsigned char *buffer, const int len_buffer) {
+char *hexlify(unsigned char *buffer, const int len_buffer) {
     static char *hex;
     char v2a[] = "0123456789abcdef";
     char *phex, tmp;
@@ -255,7 +207,7 @@ EXPORT char *hexlify(unsigned char *buffer, const int len_buffer) {
 }
 
 
-EXPORT unsigned char *unhexlify(char *buffer, const int len_buffer) {
+unsigned char *unhexlify(char *buffer, const int len_buffer) {
     static unsigned char *bstr;
     int len = (len_buffer>>1);
 
@@ -278,13 +230,13 @@ char *hash_sha256_s(unsigned char *msg, int len_msg) {
 }
 
 
-EXPORT char *hash_sha256(unsigned char *msg) {
+char *hash_sha256(unsigned char *msg) {
     return hash_sha256_s(msg, strlen(msg));
 }
 
 
 // build point from hexadecimal string absisse value
-EXPORT HexPoint *hex_point_from_hex_x(char *hex) {
+HexPoint *hex_point_from_hex_x(char *hex) {
     static HexPoint hP;
     mpz_t x, y;
 
@@ -298,7 +250,7 @@ EXPORT HexPoint *hex_point_from_hex_x(char *hex) {
 }
 
 
-EXPORT char *encoded_from_puk(Point *P) {
+char *encoded_from_puk(Point *P) {
     static char enc[67];
     char xP[67];
 
@@ -310,7 +262,7 @@ EXPORT char *encoded_from_puk(Point *P) {
 }
 
 
-EXPORT char *encoded_from_hex_puk(char *x, char *y) {
+char *encoded_from_hex_puk(char *x, char *y) {
     static char enc[67];
     mpz_t _y;
     mpz_init_set_str(_y, y, 16);
@@ -321,7 +273,7 @@ EXPORT char *encoded_from_hex_puk(char *x, char *y) {
 }
 
 
-EXPORT HexPoint *hex_puk_from_encoded(char enc[67]) {
+HexPoint *hex_puk_from_encoded(char enc[67]) {
     static HexPoint hP;
     char x[65], y[3];
     int test, i;
@@ -352,7 +304,7 @@ EXPORT HexPoint *hex_puk_from_encoded(char enc[67]) {
 }
 
 
-EXPORT HexPoint *hex_puk_from_hex(char *hex) {
+HexPoint *hex_puk_from_hex(char *hex) {
     static HexPoint hP;
     mpz_t k;
     Point tmp;
