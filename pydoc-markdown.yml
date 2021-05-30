@@ -1,13 +1,17 @@
 loaders:
   - type: python
+
 processors:
   - type: filter
   - type: smart
   - type: crossref
+
 hooks:
+  # save manually edited markdown files from docs/
   pre-render:
   - python -c "import shutil;shutil.copy('docs/index.md', 'index.md')"
   - python -c "import shutil;shutil.copy('docs/clib.md', 'clib.md')"
+
 renderer:
   output_directory: .
   content_directory_name: docs
