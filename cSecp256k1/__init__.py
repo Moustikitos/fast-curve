@@ -1,4 +1,7 @@
 # -*- encoding:utf-8 -*-
+"""
+cSecp256k1 DOC
+"""
 
 import os
 import sys
@@ -22,6 +25,55 @@ except ImportError:
 
 # on win32 platform python extensions are *.pyd, *.dll is needed
 EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
+
+
+def rand_k():
+    """Generate a random secp256k1 integer (in range [1..p])."""
+    return random.getrandbits(p.bit_length()) % p
+
+
+def rfc6979_k(msg, secret0, V=None):
+    """Generate a deterministic rfc6967 integer."""
+    hasher = hashlib.sha256
+    if (V is None):
+        h1 = msg
+        hsize = len(h1)
+        V = b'\x01'*hsize
+        K = b'\x00'*hsize
+        x = secret0
+        K = hmac.new(K, V + b'\x00' + x + h1, hasher).digest()
+        V = hmac.new(K, V, hasher).digest()
+        K = hmac.new(K, V + b'\x01' + x + h1, hasher).digest()
+        V = hmac.new(K, V, hasher).digest()
+
+    while True:
+        T = b''
+        p_blen = p.bit_length()
+        while len(T)*8 < p_blen:
+            V = hmac.new(K, V, hasher).digest()
+            T = T + V
+        k = int.from_bytes(T, "big")
+        k_blen = k.bit_length()
+
+        if k_blen > p_blen:
+            k = k >> (k_blen - p_blen)
+        if k > 0 and k < (p-1):
+            return k, V
+        K = hmac.new(K, V+b'\x00', hasher).digest()
+        V = hmac.new(K, V, hasher).digest()
+
+
+def hash_sha256(msg):
+    return hashlib.sha256(
+        msg if isinstance(msg, bytes) else msg.encode()
+    ).hexdigest().encode()
+
+
+def tagged_hash(tag, msg):
+    msg = binascii.hexlify(msg if isinstance(msg, bytes) else msg.encode())
+    return _schnorr.tagged_hash(
+        tag if isinstance(tag, bytes) else tag.encode(), msg, len(msg)
+    )
 
 
 #: try to get attribute `attr` from class `cls`. If not found set it and return
@@ -186,74 +238,6 @@ class HexSig(ctypes.Structure):
         return HexSig(raw[:64].lstrip(b"0"), raw[64:].lstrip(b"0"))
 
 
-# ### SECP256K1 CONSTANTS ###
-p = int(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f)
-n = int(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141)
-G = HexPoint(
-    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
-)
-# ###
-
-# ### DLL PROTOTYPING
-_ecdsa = ctypes.CDLL(
-    os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
-)
-_ecdsa.py_point_add.restype = ctypes.POINTER(HexPoint)
-_ecdsa.py_point_mul.restype = ctypes.POINTER(HexPoint)
-_ecdsa.hex_point_from_hex_x.restype = ctypes.POINTER(HexPoint)
-_ecdsa.hex_puk_from_encoded.restype = ctypes.POINTER(HexPoint)
-_ecdsa.encoded_from_hex_puk.restype = ctypes.c_char_p
-_ecdsa.hex_puk_from_hex.restype = ctypes.POINTER(HexPoint)
-_ecdsa.sign.restype = ctypes.POINTER(HexSig)
-_ecdsa.hash_sha256.restype = ctypes.c_char_p
-_ecdsa.init()
-_schnorr = ctypes.CDLL(
-    os.path.abspath(os.path.join(__path__[0], "_schnorr%s" % EXT))
-)
-_schnorr.sign.restype = ctypes.POINTER(HexSig)
-_schnorr.bcrypto410_sign.restype = ctypes.POINTER(HexSig)
-_schnorr.tagged_hash.restype = ctypes.c_char_p
-_schnorr.init()
-# ###
-
-
-def rand_k():
-    """Generate a random secp256k1 integer (in range [1..p])."""
-    return random.getrandbits(p.bit_length()) % p
-
-
-def rfc6979_k(msg, secret0, V=None):
-    """Generate a deterministic rfc6967 integer."""
-    hasher = hashlib.sha256
-    if (V is None):
-        h1 = msg
-        hsize = len(h1)
-        V = b'\x01'*hsize
-        K = b'\x00'*hsize
-        x = secret0
-        K = hmac.new(K, V + b'\x00' + x + h1, hasher).digest()
-        V = hmac.new(K, V, hasher).digest()
-        K = hmac.new(K, V + b'\x01' + x + h1, hasher).digest()
-        V = hmac.new(K, V, hasher).digest()
-
-    while True:
-        T = b''
-        p_blen = p.bit_length()
-        while len(T)*8 < p_blen:
-            V = hmac.new(K, V, hasher).digest()
-            T = T + V
-        k = int.from_bytes(T, "big")
-        k_blen = k.bit_length()
-
-        if k_blen > p_blen:
-            k = k >> (k_blen - p_blen)
-        if k > 0 and k < (p-1):
-            return k, V
-        K = hmac.new(K, V+b'\x00', hasher).digest()
-        V = hmac.new(K, V, hasher).digest()
-
-
 class PublicKey(HexPoint):
 
     @staticmethod
@@ -281,19 +265,6 @@ class PublicKey(HexPoint):
     @staticmethod
     def from_seed(seed):
         return PublicKey.from_hex(binascii.hexlify(seed))
-
-
-def hash_sha256(msg):
-    return hashlib.sha256(
-        msg if isinstance(msg, bytes) else msg.encode()
-    ).hexdigest().encode()
-
-
-def tagged_hash(tag, msg):
-    msg = binascii.hexlify(msg if isinstance(msg, bytes) else msg.encode())
-    return _schnorr.tagged_hash(
-        tag if isinstance(tag, bytes) else tag.encode(), msg, len(msg)
-    )
 
 
 class KeyRing(int):
@@ -377,3 +348,32 @@ class Ecdsa(KeyRing):
         hS = self.sig(sig)
         puk = self.puk()
         return bool(_ecdsa.verify(msg, puk.x, puk.y, hS.r, hS.s))
+
+
+# ### SECP256K1 CONSTANTS ###
+p = int(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f)
+n = int(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141)
+G = HexPoint(
+    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+)
+# ### DLL PROTOTYPING
+_ecdsa = ctypes.CDLL(
+    os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
+)
+_ecdsa.py_point_add.restype = ctypes.POINTER(HexPoint)
+_ecdsa.py_point_mul.restype = ctypes.POINTER(HexPoint)
+_ecdsa.hex_point_from_hex_x.restype = ctypes.POINTER(HexPoint)
+_ecdsa.hex_puk_from_encoded.restype = ctypes.POINTER(HexPoint)
+_ecdsa.encoded_from_hex_puk.restype = ctypes.c_char_p
+_ecdsa.hex_puk_from_hex.restype = ctypes.POINTER(HexPoint)
+_ecdsa.sign.restype = ctypes.POINTER(HexSig)
+_ecdsa.hash_sha256.restype = ctypes.c_char_p
+_ecdsa.init()
+_schnorr = ctypes.CDLL(
+    os.path.abspath(os.path.join(__path__[0], "_schnorr%s" % EXT))
+)
+_schnorr.sign.restype = ctypes.POINTER(HexSig)
+_schnorr.bcrypto410_sign.restype = ctypes.POINTER(HexSig)
+_schnorr.tagged_hash.restype = ctypes.c_char_p
+_schnorr.init()
