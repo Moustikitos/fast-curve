@@ -134,5 +134,5 @@ dmypy.json
 mkdocs.yml
 .generated-files.txt
 .benchmarks/
-index.md
-clib.md
+/index.md
+/clib.md
