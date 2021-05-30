@@ -21,7 +21,7 @@ except ImportError:
 EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
 
 # configure compilation
-extra_compile_args = ["-O2", "-fPIC"]
+extra_compile_args = ["-Ofast", "-fPIC"]
 include_dirs = [os.path.abspath('./src')]
 libraries = []
 if sys.platform.startswith("win"):
