@@ -134,4 +134,4 @@ dmypy.json
 mkdocs.yml
 .generated-files.txt
 .benchmarks/
-docs/
+index.md
