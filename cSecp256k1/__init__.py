@@ -102,8 +102,13 @@ class HexPoint(ctypes.Structure):
 
     @staticmethod
     def from_int(value):
-        """Build curve point from integer value."""
+        """Build curve point from integer absice."""
         return _ecdsa.hex_point_from_hex_x(b"%064x" % value).contents
+
+    @staticmethod
+    def from_hex(value):
+        """Build curve point from hex string absice."""
+        return HexPoint.from_int(int(value, 16))
 
     def encode(self):
         """Encode point as a hex bytes."""

@@ -35,6 +35,7 @@ static mpz_t p, n;
 static Point G;
 #endif
 
+static char V2A[] = "0123456789abcdef";
 
 int A2V(char c) {
     if ((c >= '0') && (c <= '9')){return c - '0';}
@@ -45,16 +46,12 @@ int A2V(char c) {
 
 char *hexlify(unsigned char *buffer, const int len_buffer) {
     static char *hex;
-    char v2a[] = "0123456789abcdef";
-    char *phex, tmp;
-    int len = (len_buffer << 1);
-
-    hex = (char *)malloc((len + 1)*sizeof(char));
+    char *phex;
+    hex = (char *)malloc((len_buffer << 1) + 1);
     phex = hex;
     for(int i=0; i<len_buffer; i++) {
-        tmp = buffer[i];
-        *phex++ = v2a[(tmp >> 4) & 0x0F];
-        *phex++ = v2a[tmp & 0x0F];
+        *phex++ = V2A[(buffer[i] >> 4) & 0x0F];
+        *phex++ = V2A[buffer[i] & 0x0F];
     }
     *phex++ = '\0';
     return hex;
@@ -64,8 +61,7 @@ char *hexlify(unsigned char *buffer, const int len_buffer) {
 unsigned char *unhexlify(char *buffer, const int len_buffer) {
     static unsigned char *bstr;
     int len = (len_buffer>>1);
-
-    bstr = (unsigned char *)malloc((len+1)*sizeof(unsigned char));
+    bstr = (unsigned char *)malloc(len + 1);
     for (int i = 0; i < len; i++) {
         bstr[i] = (A2V(buffer[i<<1]) << 4) + A2V(buffer[(i<<1)+1]);
     }
@@ -279,28 +275,11 @@ EXPORT char *hash_sha256(unsigned char *msg) {
 
 // build point from hexadecimal string absisse value
 EXPORT HexPoint *hex_point_from_hex_x(char *hex) {
-    static HexPoint hP;
-    mpz_t x, y;
-
-    mpz_init_set_str(x, hex, 16);
-    mpz_init(y);
-    y_from_x(y, x);
-
-    mpz_get_str(hP.x, 16, x);
-    mpz_get_str(hP.y, 16, y);
-    return &hP;
-}
-
-
-EXPORT char *encoded_from_puk(Point *P) {
-    static char enc[67];
-    char xP[67];
-
-    mpz_get_str(xP, 16, P->x); 
-    enc[0] = '0';
-    enc[1] = mpz_tstbit(P->y, 0) == 0 ? '2' : '3';
-    for (int i=2; i < 66; i++){enc[i] = xP[i-2];}
-    return enc;
+    static Point P;
+    mpz_init_set_str(P.x, hex, 16);
+    mpz_init(P.y);
+    y_from_x(P.y, P.x);
+    return point_hexlify(&P);
 }
 
 
@@ -311,6 +290,17 @@ EXPORT char *encoded_from_hex_puk(char *x, char *y) {
     enc[0] = '0';
     enc[1] = mpz_tstbit(_y, 0) == 0 ? '2' : '3';
     for (int i=2; i < 66; i++){enc[i] = x[i-2];}
+    return enc;
+}
+
+
+EXPORT char *encoded_from_puk(Point *P) {
+    static char enc[67];
+    char xP[67];
+    mpz_get_str(xP, 16, P->x); 
+    enc[0] = '0';
+    enc[1] = mpz_tstbit(P->y, 0) == 0 ? '2' : '3';
+    for (int i=2; i < 66; i++){enc[i] = xP[i-2];}
     return enc;
 }
 
