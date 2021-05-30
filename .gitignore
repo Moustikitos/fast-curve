@@ -133,4 +133,5 @@ dmypy.json
 # Custom
 mkdocs.yml
 .generated-files.txt
+.benchmarks/
 docs/
