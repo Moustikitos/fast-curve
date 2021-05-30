@@ -133,3 +133,4 @@ dmypy.json
 # Custom
 mkdocs.yml
 .generated-files.txt
+docs/
