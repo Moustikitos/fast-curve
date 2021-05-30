@@ -40,6 +40,16 @@ class TestCSecp256k1Signatures:
             _msg, pu_key.x, pu_key.y, sig.r, sig.s
         ) != 1
 
+    def test_C_schnorr_sign(self, benchmark):
+        signer = _schnorr.sign
+        sig = benchmark(signer, msg, pr_key, k).contents
+        assert _schnorr.verify(
+            msg, pu_key.x, sig.r, sig.s
+        ) == 1
+        assert _schnorr.verify(
+            _msg, pu_key.x, sig.r, sig.s
+        ) != 1
+
 
 try:
     from pySecp256k1 import schnorr
@@ -54,5 +64,13 @@ try:
                     binascii.unhexlify(msg), binascii.unhexlify(pr_key)
                 )
             )
+            # signer = _schnorr.sign
+            # sig = signer(msg, pr_key, k).contents
+            # assert sig.raw() == binascii.hexlify(
+            #     schnorr.sign(
+            #         binascii.unhexlify(msg), binascii.unhexlify(pr_key)
+            #     )
+            # )
+
 except ImportError:
     pass
