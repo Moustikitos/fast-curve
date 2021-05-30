@@ -219,3 +219,13 @@ EXPORT short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     mpz_clears(r, s, _y, e, P.x, P.y, R.x, R.y, NULL);
     return 0;
 }
+
+
+EXPORT void main(){
+    HexSig *sig;
+    char msg[] = "3819ff1b5125e14102ae429929e815d6fada758d4a6886a03b1b1c64aca3a53a";
+    char prk[] = "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b";
+    char rnd[] = "32609657b627fbbda461f14887a62dc0d74b02af7585ed191576dbd3cd7677fd";
+    for (int i=0; i<1000; i++){sig = sign(msg, prk, rnd);}
+    gmp_printf("r = %s\ns = %s\n", sig->r, sig->s);
+}

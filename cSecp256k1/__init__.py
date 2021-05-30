@@ -1,10 +1,14 @@
 # -*- encoding:utf-8 -*-
 """
-cSecp256k1 DOC
+`cSecp256k1` is a `ctypes` binding that provides fast computation on
+`SECP256K1` curve. `ECDSA` signature is about 140 times faster than [pure
+python](https://github.com/Moustikitos/elliptic-curve) implementation,
+`SCHNORR` signature about 60 times faster.
 """
 
 import os
 import sys
+import time
 import hmac
 import ctypes
 import random
@@ -377,3 +381,16 @@ _schnorr.sign.restype = ctypes.POINTER(HexSig)
 _schnorr.bcrypto410_sign.restype = ctypes.POINTER(HexSig)
 _schnorr.tagged_hash.restype = ctypes.c_char_p
 _schnorr.init()
+###
+
+
+def timeit_ecdsa():
+    start = time.time()
+    _ecdsa.main()
+    return (time.time()-start)/1000
+
+
+def timeit_schnorr():
+    start = time.time()
+    _schnorr.main()
+    return (time.time()-start)/1000

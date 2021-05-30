@@ -69,3 +69,13 @@ EXPORT short verify(char *msg, char *x, char *y, char *hr, char*hs) {
     mpz_clears(h, s, r, c, hc, rc, nm2, NULL);
     return result;
 }
+
+
+EXPORT void main(){
+    HexSig *sig;
+    char msg[] = "3819ff1b5125e14102ae429929e815d6fada758d4a6886a03b1b1c64aca3a53a";
+    char prk[] = "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b";
+    char rnd[] = "63b10ab7890453eb4110b20cb3ed61004e684028c5d05cc4d046569e9cb4cdae";
+    for (int i=0; i<1000; i++){sig = sign(msg, prk, rnd, 1);}
+    gmp_printf("r = %s\ns = %s\n", sig->r, sig->s);
+}

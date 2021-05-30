@@ -3,11 +3,12 @@
 
 import ctypes
 import hashlib
+import binascii
 import cSecp256k1 as secp256k1
 
 
 # from https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py
-def tagged_hash(tag: str, msg: bytes) -> bytes:
+def tagged_hash(tag, msg):
     tag_hash = hashlib.sha256(tag.encode()).digest()
     return hashlib.sha256(tag_hash + tag_hash + msg).digest()
 
@@ -25,10 +26,10 @@ class TestCSecp256k1Hash:
     def test_puk(self):
         puk0 = secp256k1.PublicKey.from_secret(b"secret")
         seed = hashlib.sha256(b"secret").digest()
-        value = int(seed.hex(), 16)
+        value = int(binascii.hexlify(seed), 16)
         puk = secp256k1.PublicKey.from_seed(seed)
         assert puk.x == puk0.x and puk.y == puk0.y
-        puk = secp256k1.PublicKey.from_hex(seed.hex())
+        puk = secp256k1.PublicKey.from_hex(binascii.hexlify(seed))
         assert puk.x == puk0.x and puk.y == puk0.y
         puk = secp256k1.PublicKey.from_int(value)
         assert puk.x == puk0.x and puk.y == puk0.y
@@ -51,8 +52,8 @@ class TestCSecp256k1Hash:
     def test_tagged_hash(self):
         tag = "BIP340/test"
         msg = b"tagged hash test"
-        assert tagged_hash(
-            tag, msg
-        ).hex().encode() == secp256k1.tagged_hash(
+        assert binascii.hexlify(
+            tagged_hash(tag, msg)
+        ) == secp256k1.tagged_hash(
             tag, msg
         )
