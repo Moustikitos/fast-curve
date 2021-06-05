@@ -57,6 +57,12 @@ class TestSchnorrVectors:
             sig
         ) == result
 
+        msg_mod_p = b"%064x" % (int(msg, 16) % secp256k1.p)
+        msg_mod_n = b"%064x" % (int(msg, 16) % secp256k1.n)
+        r, s = sig[:64], sig[64:]
+        assert not secp256k1._schnorr.verify(msg_mod_p, pubkey, r, s)
+        assert not secp256k1._schnorr.verify(msg_mod_n, pubkey, r, s)
+
     def testVector4to14(self):
         for v in VECTORS[4:]:
             secret0, pubkey, rnd, msg, sig, result = read_vector(VECTORS[4])

@@ -64,13 +64,6 @@ try:
                     binascii.unhexlify(msg), binascii.unhexlify(pr_key)
                 )
             )
-            # signer = _schnorr.sign
-            # sig = signer(msg, pr_key, k).contents
-            # assert sig.raw() == binascii.hexlify(
-            #     schnorr.sign(
-            #         binascii.unhexlify(msg), binascii.unhexlify(pr_key)
-            #     )
-            # )
 
 except ImportError:
     pass
