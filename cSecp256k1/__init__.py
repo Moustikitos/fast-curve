@@ -302,7 +302,7 @@ class Bcrpt410(KeyRing):
 
     def sign(self, data):
         return _schnorr.bcrypto410_sign(
-            hash_sha256(data), b"%64x" % self
+            hash_sha256(data), b"%064x" % self
         ).contents
 
     def verify(self, data, sig):
@@ -316,7 +316,7 @@ class Schnorr(KeyRing):
 
     def sign(self, data, k=None, rfc6979=False):
         msg = hash_sha256(data)
-        self_ = b"%64x" % self
+        self_ = b"%064x" % self
         if k is None:
             if not rfc6979:
                 k = b"%064x" % (rand_k() % n)
@@ -337,7 +337,7 @@ class Ecdsa(KeyRing):
 
     def sign(self, data, k=None, rfc6979=False, canonical=True):
         msg = hash_sha256(data)
-        self_ = b"%64x" % self
+        self_ = b"%064x" % self
         if k is None:
             if not rfc6979:
                 k = b"%064x" % (rand_k() % n)

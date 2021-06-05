@@ -12,8 +12,10 @@ _msg = secp256k1.hash_sha256(b"bad message to check")
 pr_key = secp256k1.hash_sha256(b"secret")
 pu_key = secp256k1.PublicKey.from_secret(b"secret")
 enc_pu_key = secp256k1.PublicKey.from_secret(b"secret").encode()
-rfc6979_k = b"%64x" % secp256k1.rfc6979_k(unhexlify(msg), unhexlify(pr_key))[0]
-k = b"%64x" % secp256k1.rand_k()
+k = b"%064x" % secp256k1.rand_k()
+rfc6979_k = b"%064x" % secp256k1.rfc6979_k(
+    unhexlify(msg), unhexlify(pr_key)
+)[0]
 
 
 class TestCSecp256k1Signatures:
