@@ -1,39 +1,51 @@
 #include "secp256k1.h"
 
 
+// Efficiency test
+Sig * ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
+    static Sig sig;
+    Point Q;
+    mpz_t ns2, invk;
+    mpz_inits(invk, ns2, NULL);
+
+    point_mul(&Q, &G, k);
+    mpz_invert(invk, k, n);
+    mpz_mod(sig.r, Q.x, n);
+
+    if (mpz_cmp_ui(sig.r, 0) == 0){
+        mpz_init_set_ui(sig.s, 0);
+    } else {
+        mpz_mul(sig.s, secret0, sig.r);
+        mpz_add(sig.s, sig.s, msg);
+        mpz_mul(sig.s, sig.s, invk);
+        mpz_mod(sig.s, sig.s, n);
+        mpz_div_ui(ns2, n, 2);
+        if (mpz_cmp_ui(sig.s, 0) == 0){
+            mpz_init_set_ui(sig.r, 0);
+        } else if (canonical > 0 && mpz_cmp(sig.s, ns2) > 0){
+            mpz_sub(sig.s, n, sig.s);
+        }
+    }
+
+    mpz_clears(invk, ns2, NULL);
+    return &sig;
+}
+
+
 EXPORT HexSig *sign(char *digest, char *secret, char *nonce, short canonical) {
     static HexSig hS;
-    mpz_t invk, ns2, msg, secret0, k, r, s;
-    Point Q;
+    Sig *sig;
+    mpz_t msg, secret0, k;
 
-    mpz_inits(invk, ns2, r, s, NULL);
     mpz_init_set_str(msg, digest, 16);
     mpz_init_set_str(secret0, secret, 16);
     mpz_init_set_str(k, nonce, 16);
     mpz_mod(k, k, n);
-    point_mul(&Q, &G, k);
-    mpz_invert(invk, k, n);
-    mpz_mod(r, Q.x, n);
+    sig = ecdsa_sign(msg, secret0, k, canonical);
+    mpz_get_str(hS.r, 16, sig->r);
+    mpz_get_str(hS.s, 16, sig->s);
 
-    if (mpz_cmp_ui(r, 0) == 0){
-        mpz_init_set_ui(s, 0);
-    } else {
-        mpz_mul(s, secret0, r);
-        mpz_add(s, s, msg);
-        mpz_mul(s, s, invk);
-        mpz_mod(s, s, n);
-        mpz_div_ui(ns2, n, 2);
-        if (mpz_cmp_ui(s, 0) == 0){
-            mpz_init_set_ui(r, 0);
-        } else if (canonical > 0 && mpz_cmp(s, ns2) > 0){
-            mpz_sub(s, n, s);
-        }
-    }
-
-    mpz_get_str(hS.r, 16, r);
-    mpz_get_str(hS.s, 16, s);
-
-    mpz_clears(invk, ns2, msg, secret0, k, r, s, NULL);
+    mpz_clears(msg, secret0, k, NULL);
     return &hS;
 }
 
@@ -72,10 +84,13 @@ EXPORT short verify(char *msg, char *x, char *y, char *hr, char*hs) {
 
 
 EXPORT void main(){
-    HexSig *sig;
-    char msg[] = "3819ff1b5125e14102ae429929e815d6fada758d4a6886a03b1b1c64aca3a53a";
-    char prk[] = "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b";
-    char rnd[] = "63b10ab7890453eb4110b20cb3ed61004e684028c5d05cc4d046569e9cb4cdae";
-    for (int i=0; i<1000; i++){sig = sign(msg, prk, rnd, 1);}
-    gmp_printf("r = %s\ns = %s\n", sig->r, sig->s);
+    Sig *sig;
+
+    mpz_t msg, secret0, k;
+    mpz_init_set_str(msg, "3819ff1b5125e14102ae429929e815d6fada758d4a6886a03b1b1c64aca3a53a", 16);
+    mpz_init_set_str(secret0, "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", 16);
+    mpz_init_set_str(k, "63b10ab7890453eb4110b20cb3ed61004e684028c5d05cc4d046569e9cb4cdae", 16);
+
+    for (int i=0; i<1000; i++){sig = ecdsa_sign(msg, secret0, k, 1);}
+    gmp_printf("r = %Zx\ns = %Zx\n", sig->r, sig->s);
 }
