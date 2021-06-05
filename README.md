@@ -122,7 +122,7 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 
 ### Issuing signatures
 
-#### Ecdsa
+**Ecdsa**
 ```python
 >>> import cSecp256k1 as cs
 >>> e = cs.Ecdsa("secret")
@@ -141,8 +141,7 @@ b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
 True
 ```
 
-#### Schnorr
-
+**Schnorr**
 ```python
 >>> import cSecp256k1 as cs
 >>> s = cs.Schnorr("secret")
@@ -182,11 +181,9 @@ b'30440220264745e87fe0d327a5b5b9162d612f4ca433e5752e9ab8de5c1d98ad063cff43022030
 >
 ```
 
-### Issuing Ark signatures
+### Issuing [Ark.io](https://ark.io) signatures
 
-**`arky` delegate private key used here**.
-
-#### ECDSA (DER)
+**ECDSA (DER)**
 ```python
 >>> import cSecp256k1 as cs
 >>> # if no secret given, it is asked via terminal input
@@ -197,13 +194,25 @@ Type or paste your passphrase >
 '3045022100f6f8e63b02d8a729ab8aca1a49348463ddb35ee1b27e07002ffb2be49ce3058502206cf2827da8c4a52c32e2235d6558ccdcc49fabe2da7466a1472b41d6e50ad3a4'
 ```
 
-#### Schnorr (RAW)
+**Schnorr (RAW)**
 ```python
 >>> import cSecp256k1 as cs
->>> # ark uses bcrypto 4.10 schnorr signature
+>>> # ark.io blockchain uses bcrypto 4.10 schnorr signatures
 >>> b = cs.Bcrpt410()
 Type or paste your passphrase >
 >>> sig = b.sign("simple message") 
 >>> sig.raw().decode()
 '928956e9f4bc1694521eea7dd72be706b26c2b4945b7c36e4f384d81a2292e71c2dda0a3e1c2a96578bb552a6f8e652014b4333bb37449f08b1e4f0076b3dd9f'
 ```
+
+## Versions
+
+### 1.0.4
+ - [x] C code improvement
+ - [x] code coverage improvement
+ - [x] pydoc-markdown documentation added
+
+### 1.0.3
+ - [x] ecdsa signature support
+ - [x] bcrypto 4.10 schnorr signature support
+ - [x] [BIP0340 sipa](https://github.com/sipa/bips/tree/3b1fb9600b938172dd98a63e4906a861af9c3ab0/bip-0340) shnorr signatures support
