@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="None" name="description"/>
+<link href="img/favicon.ico" rel="shortcut icon"/>
+<title>The fast curve Project</title>
+<link href="css/bootstrap.min.css" rel="stylesheet"/>
+<link href="css/font-awesome.min.css" rel="stylesheet"/>
+<link href="css/base.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet"/>
+<script defer="" src="js/jquery-1.10.2.min.js"></script>
+<script defer="" src="js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body class="homepage">
+<div class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+<div class="container">
+<a class="navbar-brand" href=".">The fast curve Project</a>
+<!-- Expander button -->
+<button class="navbar-toggler" data-target="#navbar-collapse" data-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse" id="navbar-collapse">
+<!-- Main navigation -->
+<ul class="nav navbar-nav">
+<li class="navitem active">
+<a class="nav-link" href=".">Home</a>
+</li>
+<li class="navitem">
+<a class="nav-link" href="clib/">C lib</a>
+</li>
+<li class="navitem">
+<a class="nav-link" href="python/">Python</a>
+</li>
+</ul>
+<ul class="nav navbar-nav ml-auto">
+<li class="nav-item">
+<a class="nav-link" data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fa fa-search"></i> Search
+                            </a>
+</li>
+<li class="nav-item">
+<a class="nav-link disabled" rel="prev">
+<i class="fa fa-arrow-left"></i> Previous
+                                </a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="clib/" rel="next">
+                                    Next <i class="fa fa-arrow-right"></i>
+</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="https://github.com/Moustikitos/fast-curve/edit/master/docs/index.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="row">
+<div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+<div class="navbar-header">
+<button class="navbar-toggler collapsed" data-target="#toc-collapse" data-toggle="collapse" title="Table of Contents" type="button">
+<span class="fa fa-angle-down"></span>
+</button>
+</div>
+<div class="navbar-collapse collapse card bg-secondary" id="toc-collapse">
+<ul class="nav flex-column">
+<li class="nav-item" data-level="1"><a class="nav-link" href="#about">About</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="1"><a class="nav-link" href="#operating-systems-supported">Operating Systems Supported</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="1"><a class="nav-link" href="#quick-view">Quick view</a>
+<ul class="nav flex-column">
+<li class="nav-item" data-level="2"><a class="nav-link" href="#secp256k1-curve-constants">secp256k1 curve constants:</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#algebra">Algebra</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#key-pair">Key pair</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#issuing-signature">Issuing signature</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#encodingdecoding-signature">Encoding/decoding signature</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#issuing-arkio-signatures">Issuing Ark.io signatures</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div></div>
+<div class="col-md-9" role="main">
+<h1 id="about">About<a class="headerlink" href="#about" title="Permanent link">#</a></h1>
+<p><code>cSecp256k1</code> package is a <code>ctypes</code> implementation for <code>scp256k1</code> curve algebra
+and digital signatures running on both python 2.x and 3.x.</p>
+<h1 id="operating-systems-supported">Operating Systems Supported<a class="headerlink" href="#operating-systems-supported" title="Permanent link">#</a></h1>
+<p>This package targets Linux, MacOS and Windows  operating systems. Due to the
+dependency on the GMP C library, refer to <a href="README.md">project readme</a> in order
+to build this package on Windows.</p>
+<h1 id="quick-view">Quick view<a class="headerlink" href="#quick-view" title="Permanent link">#</a></h1>
+<pre><code class="language-py">&gt;&gt;&gt; import cSecp256k1 as cs
+</code></pre>
+<h2 id="secp256k1-curve-constants"><code>secp256k1</code> curve constants:<a class="headerlink" href="#secp256k1-curve-constants" title="Permanent link">#</a></h2>
+<pre><code class="language-py">&gt;&gt;&gt; cs.G  # generator point
+&lt;secp256k1 point:
+  x:b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+  y:b'483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'
+&gt;
+&gt;&gt;&gt; cs.G[0]
+55066263022277343669578718895168534326250603453777594175500187360389116729240
+&gt;&gt;&gt; cs.G[1]
+32670510020758816978083085130507043184471273380659243275938904335757337482424
+&gt;&gt;&gt; cs.n
+115792089237316195423570985008687907852837564279074904382605163141518161494337
+&gt;&gt;&gt; cs.p
+115792089237316195423570985008687907853269984665640564039457584007908834671663
+&gt;&gt;&gt;
+</code></pre>
+<h2 id="algebra">Algebra<a class="headerlink" href="#algebra" title="Permanent link">#</a></h2>
+<pre><code class="language-python">&gt;&gt;&gt; cs.G * 2
+&lt;secp256k1 point:
+  x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+  y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+&gt;
+&gt;&gt;&gt; cs.G + cs.G
+&lt;secp256k1 point:
+  x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+  y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+&gt;
+</code></pre>
+<h2 id="key-pair">Key pair<a class="headerlink" href="#key-pair" title="Permanent link">#</a></h2>
+<p>Private and public keys are issued using a <code>KeyRing</code> object. There are several
+ways to initiate a <code>KeyRing</code>:</p>
+<pre><code class="language-py">&gt;&gt;&gt; # passphrase asked via terminal
+&gt;&gt;&gt; k = cs.KeyRing()
+Type or paste your passphrase &gt; 
+&gt;&gt;&gt; # k is actualy a python integer instance
+&gt;&gt;&gt; k
+19774644322343364210033507226347517504509547448996271814774638767344332546651
+&gt;&gt;&gt; # giving a passphrase (as bytes or str)
+&gt;&gt;&gt; cs.KeyRing(b"secret")
+19774644322343364210033507226347517504509547448996271814774638767344332546651
+&gt;&gt;&gt; cs.KeyRing("secret")
+19774644322343364210033507226347517504509547448996271814774638767344332546651
+&gt;&gt;&gt; # giving an integer
+&gt;&gt;&gt; cs.KeyRing(k)
+19774644322343364210033507226347517504509547448996271814774638767344332546651
+</code></pre>
+<p><code>KeyRing</code> object is an integer representing the secret abscissa also known as
+private key. From it the public key can be retrived using generator point:</p>
+<pre><code class="language-py">&gt;&gt;&gt; puk = cs.G * k  # k * cs.G raises an Exception
+&gt;&gt;&gt; puk
+&lt;secp256k1 point:
+  x:b'a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
+  y:b'924aa2580069952b0140d88de21c367ee4af7c4a906e1498f20ab8f62e4c2921'
+&gt;
+&gt;&gt;&gt; # secp256k1 point representation
+&gt;&gt;&gt; puk.encode()
+b'03a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
+</code></pre>
+<p>A specific method is defined for that purpose:</p>
+<pre><code class="language-py">&gt;&gt;&gt; puk = k.puk()
+&lt;secp256k1 point:
+  x:b'a02b9d5fdd1307c2ee4652ba54d492d1fd11a7d1bb3f3a44c4a05e79f19de933'
+  y:b'924aa2580069952b0140d88de21c367ee4af7c4a906e1498f20ab8f62e4c2921'
+&gt;
+</code></pre>
+<h2 id="issuing-signature">Issuing signature<a class="headerlink" href="#issuing-signature" title="Permanent link">#</a></h2>
+<p>Two specific <code>Keyring</code> subclasses are defined to that purpose:</p>
+<h3 id="ecdsa-signatures"><code>ECDSA</code> signatures<a class="headerlink" href="#ecdsa-signatures" title="Permanent link">#</a></h3>
+<pre><code class="language-python">&gt;&gt;&gt; import cSecp256k1 as cs
+&gt;&gt;&gt; e = cs.Ecdsa("secret")
+&gt;&gt;&gt; sig1 = e.sign("simple message as string")
+&gt;&gt;&gt; sig2 = e.sign("simple message as string", rfc6979=True)
+&gt;&gt;&gt; sig1
+&lt;secp256k1 signature:
+  r:b'ff5558ac0366bf794c72648cb3fbd591910f599d8a2737fb72820d121d1a704a'
+  s:b'74824580157a04b004609297ca0d92e390e989a38df05ea80753c938b73acf66'
+&gt;
+&gt;&gt;&gt; sig2
+&lt;secp256k1 signature:
+  r:b'd7b0a8a15ac4eedb6286a29b6ff25f945b22d75a73763547a9f9b9f4436ece81'
+  s:b'2d919c85e43c5f200b3aa09eec0f1930fee67b4ad19994ab9df2cd85a35eb482'
+&gt;
+&gt;&gt;&gt; e.verify("simple message as string", sig1)
+True
+&gt;&gt;&gt; e.verify("simple message as string", sig2)
+True
+</code></pre>
+<h3 id="schnorr-signatures"><code>SCHNORR</code> signatures<a class="headerlink" href="#schnorr-signatures" title="Permanent link">#</a></h3>
+<pre><code class="language-py">&gt;&gt;&gt; s = cs.Schnorr("secret")
+&gt;&gt;&gt; sig = s.sign("simple message")
+&gt;&gt;&gt; sig
+&lt;secp256k1 signature:
+  r:b'8b34bfacb66585405f0a08bb87ba3d7ac1637d1807c78a5b53df0313c7f211d8'
+  s:b'77105ad3d604a1b7c93f100985378c17541f4cd41e5395195bbac8d6cae8151b'
+&gt;
+</code></pre>
+<h2 id="encodingdecoding-signature">Encoding/decoding signature<a class="headerlink" href="#encodingdecoding-signature" title="Permanent link">#</a></h2>
+<p>An elliptic curve digital signature is a set of two integers, <code>r</code> and <code>s</code>.
+There are several ways to represent such signature with a string. <code>cSec256k1</code>
+package implements 2 of them: <code>RAW</code> and <code>DER</code>.</p>
+<pre><code class="language-python">&gt;&gt;&gt; import cSecp256k1 as cs
+&gt;&gt;&gt; s = cs.Schnorr("secret")
+&gt;&gt;&gt; sig = s.sign("simple message as string")
+&gt;&gt;&gt; sig
+&lt;secp256k1 signature:
+  r:b'5ad683cb3681089fdfa36d89da8394cc9186b255ddd56242cf9e1546b868df0b'
+  s:b'cbb28168bf5976123a84a485c56afac221bb65a01b92f3530a1112caffdac9a6'
+&gt;
+&gt;&gt;&gt; # encode signature as RAW and DER
+&gt;&gt;&gt; raw = sig.raw()
+&gt;&gt;&gt; raw
+b'5ad683cb3681089fdfa36d89da8394cc9186b255ddd56242cf9e1546b868df0bcbb28168bf5976123a84a485c56afac221bb65a01b92f3530a1112caffdac9a6'
+&gt;&gt;&gt; der = sig.der()
+&gt;&gt;&gt; der
+b'304502205ad683cb3681089fdfa36d89da8394cc9186b255ddd56242cf9e1546b868df0b022100cbb28168bf5976123a84a485c56afac221bb65a01b92f3530a1112caffdac9a6'
+&gt;&gt;&gt; # decode signature from RAW and DER
+&gt;&gt;&gt; s.sig(raw) 
+&lt;secp256k1 signature:
+  r:b'5ad683cb3681089fdfa36d89da8394cc9186b255ddd56242cf9e1546b868df0b'
+  s:b'cbb28168bf5976123a84a485c56afac221bb65a01b92f3530a1112caffdac9a6'
+&gt;
+&gt;&gt;&gt; s.sig(der)
+&lt;secp256k1 signature:
+  r:b'5ad683cb3681089fdfa36d89da8394cc9186b255ddd56242cf9e1546b868df0b'
+  s:b'cbb28168bf5976123a84a485c56afac221bb65a01b92f3530a1112caffdac9a6'
+&gt;
+</code></pre>
+<h2 id="issuing-arkio-signatures">Issuing <a href="https://ark.io">Ark.io</a> signatures<a class="headerlink" href="#issuing-arkio-signatures" title="Permanent link">#</a></h2>
+<h3 id="ecdsa-der">ECDSA (DER)<a class="headerlink" href="#ecdsa-der" title="Permanent link">#</a></h3>
+<pre><code class="language-python">&gt;&gt;&gt; import cSecp256k1 as cs
+&gt;&gt;&gt; # if no secret given, it is asked via terminal input
+&gt;&gt;&gt; e = cs.Ecdsa()
+Type or paste your passphrase &gt;
+&gt;&gt;&gt; sig = e.sign("simple message", rfc6979=True, canonical=True)
+&gt;&gt;&gt; sig.der().decode()
+'3045022100f6f8e63b02d8a729ab8aca1a49348463ddb35ee1b27e07002ffb2be49ce3058502206cf2827da8c4a52c32e2235d6558ccdcc49fabe2da7466a1472b41d6e50ad3a4'
+</code></pre>
+<h3 id="schnorr-raw">Schnorr (RAW)<a class="headerlink" href="#schnorr-raw" title="Permanent link">#</a></h3>
+<pre><code class="language-python">&gt;&gt;&gt; import cSecp256k1 as cs
+&gt;&gt;&gt; # ark.io blockchain uses bcrypto 4.10 schnorr signatures
+&gt;&gt;&gt; b = cs.Bcrpt410()
+Type or paste your passphrase &gt;
+&gt;&gt;&gt; sig = b.sign("simple message") 
+&gt;&gt;&gt; sig.raw().decode()
+'928956e9f4bc1694521eea7dd72be706b26c2b4945b7c36e4f384d81a2292e71c2dda0a3e1c2a96578bb552a6f8e652014b4333bb37449f08b1e4f0076b3dd9f'
+</code></pre>
+<!-- # Sources and documentations
+ 1. Schnorr signatures
+    + [BIP 340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
+    + [BIP 340 Python reference](https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py)
+    + [Bcrypto 4.10 schnorr](https://github.com/bcoin-org/bcrypto/blob/v4.1.0/lib/js/schnorr.js)
+ 2. RFC 6979
+    + []()
+ 3. ArkEcosystem
+    + []() --></div>
+</div>
+</div>
+<footer class="col-md-12">
+<hr/>
+<p>Copyright © 2021 THOORENS Bruno - MIT licence</p>
+<p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+</footer>
+<script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+<script defer="" src="js/base.js"></script>
+<script defer="" src="search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="search"/>
+</div>
+</form>
+<div id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2021-06-11 20:06:26.785440+00:00
+-->
