@@ -6,7 +6,8 @@ and digital signatures running on both python 2.x and 3.x.
 # Operating Systems Supported
 
 This package targets Linux, MacOS and Windows  operating systems. Due to the
-dependency on the GMP C library, refer to [project readme](README.md) in order
+dependency on the GMP C library, refer to [project readme](https://github.com/Moustikitos/fast-curve/blob/master/README.md)
+in order
 to build this package on Windows.
 
 # Quick view

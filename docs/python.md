@@ -1,7 +1,10 @@
 <a name="cSecp256k1"></a>
 # cSecp256k1
 
-cSecp256k1 DOC
+`cSecp256k1` is a `ctypes` binding that provides fast computation on
+`SECP256K1` curve. `ECDSA` signature is about 140 times faster than [pure
+python](https://github.com/Moustikitos/elliptic-curve) implementation,
+`SCHNORR` signature about 60 times faster.
 
 <a name="cSecp256k1.rand_k"></a>
 #### rand\_k

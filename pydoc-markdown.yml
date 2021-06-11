@@ -17,7 +17,7 @@ renderer:
   content_directory_name: docs
   type: mkdocs
   pages:
-    - title: Base
+    - title: Home
       name: index
       source: index.md
     - title: C lib
