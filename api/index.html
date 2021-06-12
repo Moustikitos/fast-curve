@@ -6,7 +6,7 @@
 <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link href="../img/favicon.ico" rel="shortcut icon"/>
-<title>Python - The fast curve Project</title>
+<title>API - The fast curve Project</title>
 <link href="../css/bootstrap.min.css" rel="stylesheet"/>
 <link href="../css/font-awesome.min.css" rel="stylesheet"/>
 <link href="../css/base.css" rel="stylesheet"/>
@@ -31,11 +31,8 @@
 <li class="navitem">
 <a class="nav-link" href="..">Home</a>
 </li>
-<li class="navitem">
-<a class="nav-link" href="../clib/">C lib</a>
-</li>
 <li class="navitem active">
-<a class="nav-link" href="./">Python</a>
+<a class="nav-link" href="./">API</a>
 </li>
 </ul>
 <ul class="nav navbar-nav ml-auto">
@@ -45,7 +42,7 @@
                             </a>
 </li>
 <li class="nav-item">
-<a class="nav-link" href="../clib/" rel="prev">
+<a class="nav-link" href=".." rel="prev">
 <i class="fa fa-arrow-left"></i> Previous
                                 </a>
 </li>
@@ -55,7 +52,7 @@
 </a>
 </li>
 <li class="nav-item">
-<a class="nav-link" href="https://github.com/Moustikitos/fast-curve/edit/master/docs/python.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+<a class="nav-link" href="https://github.com/Moustikitos/fast-curve/edit/master/docs/api.md"><i class="fa fa-github"></i> Edit on GitHub</a>
 </li>
 </ul>
 </div>
@@ -78,6 +75,10 @@
 </ul>
 </li>
 <li class="nav-item" data-level="2"><a class="nav-link" href="#hexsig-objects">HexSig Objects</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#publickey-objects">PublicKey Objects</a>
 <ul class="nav flex-column">
 </ul>
 </li>
@@ -107,8 +108,8 @@ python</a> implementation,
 <h2 id="hexpoint-objects">HexPoint Objects<a class="headerlink" href="#hexpoint-objects" title="Permanent link">#</a></h2>
 <pre><code class="language-python">class HexPoint(ctypes.Structure)
 </code></pre>
-<p><code>ctypes</code> structure for secp256k1 curve point with <code>x</code>and <code>y</code> attributes
-as hex bytes.</p>
+<p><code>ctypes</code> structure for secp256k1 curve point with <code>x</code>and <code>y</code> attributes as hex
+bytes.</p>
 <p><strong>Attributes</strong>:</p>
 <ul>
 <li><code>x</code> <em>bytes</em> - point absisse as hex bytes</li>
@@ -122,10 +123,9 @@ as hex bytes.</p>
 &gt;&gt;&gt; G.x  # return x value as hex bytes
 b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 &gt;&gt;&gt; G[0]  # return x value as integer
-55066263022277343669578718895168534326250603453777594175500187360389116729\
-240
+55066263022277343669578718895168534326250603453777594175500187360389116729240
 </code></pre>
-<p>Eliptic curve algebra is implented with python operator <code>+</code> and <code>*</code>.</p>
+<p>Eliptic curve algebra is implemented with python operator <code>+</code> and <code>*</code>.</p>
 <pre><code class="language-python">&gt;&gt;&gt; G * 2
 &lt;secp256k1 point:
     x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
@@ -158,8 +158,8 @@ b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 <h2 id="hexsig-objects">HexSig Objects<a class="headerlink" href="#hexsig-objects" title="Permanent link">#</a></h2>
 <pre><code class="language-python">class HexSig(ctypes.Structure)
 </code></pre>
-<p><code>ctypes</code> structure for secp256k1 signature with <code>r</code>and <code>s</code> attributes
-as hex bytes.</p>
+<p><code>ctypes</code> structure for secp256k1 signature with <code>r</code>and <code>s</code> attributes as hex
+bytes.</p>
 <p><strong>Attributes</strong>:</p>
 <ul>
 <li><code>r</code> <em>bytes</em> - signature part <code>1</code> as hex bytes</li>
@@ -169,7 +169,7 @@ as hex bytes.</p>
 <h4 id="der">der<a class="headerlink" href="#der" title="Permanent link">#</a></h4>
 <pre><code class="language-python"> | der()
 </code></pre>
-<p>Generate DER signature as hexadecimal bytes string.</p>
+<p>Encode signature as DER hexadecimal bytes string.</p>
 <p><a name="cSecp256k1.HexSig.from_der"></a></p>
 <h4 id="from_der">from_der<a class="headerlink" href="#from_der" title="Permanent link">#</a></h4>
 <pre><code class="language-python"> | @staticmethod
@@ -180,13 +180,49 @@ as hex bytes.</p>
 <h4 id="raw">raw<a class="headerlink" href="#raw" title="Permanent link">#</a></h4>
 <pre><code class="language-python"> | raw()
 </code></pre>
-<p>Generate RAW signature as hexadecimal bytes string.</p>
+<p>Encode signature as RAW hexadecimal bytes string.</p>
 <p><a name="cSecp256k1.HexSig.from_raw"></a></p>
 <h4 id="from_raw">from_raw<a class="headerlink" href="#from_raw" title="Permanent link">#</a></h4>
 <pre><code class="language-python"> | @staticmethod
  | from_raw(raw)
 </code></pre>
-<p>Return HexSig object from a RAW signature string.</p></div>
+<p>Return HexSig object from a RAW signature string.</p>
+<p><a name="cSecp256k1.PublicKey"></a></p>
+<h2 id="publickey-objects">PublicKey Objects<a class="headerlink" href="#publickey-objects" title="Permanent link">#</a></h2>
+<pre><code class="language-python">class PublicKey(HexPoint)
+</code></pre>
+<p><code>ctypes</code> structure for secp256k1 public key with <code>x</code>and <code>y</code> attributes as hex
+bytes. It is a subclass of <a href="./#hexpoint-objects"><code>HexPoint</code></a>.</p>
+<p><a name="cSecp256k1.PublicKey.decode"></a></p>
+<h4 id="decode">decode<a class="headerlink" href="#decode" title="Permanent link">#</a></h4>
+<pre><code class="language-python"> | @staticmethod
+ | decode(enc)
+</code></pre>
+<p>Return PublicKey object from secp256k1-encoded byte or string.</p>
+<p><a name="cSecp256k1.PublicKey.from_hex"></a></p>
+<h4 id="from_hex_1">from_hex<a class="headerlink" href="#from_hex_1" title="Permanent link">#</a></h4>
+<pre><code class="language-python"> | @staticmethod
+ | from_hex(value)
+</code></pre>
+<p>Compute a PublicKey object from hexadecimal abcissa.</p>
+<p><a name="cSecp256k1.PublicKey.from_int"></a></p>
+<h4 id="from_int_1">from_int<a class="headerlink" href="#from_int_1" title="Permanent link">#</a></h4>
+<pre><code class="language-python"> | @staticmethod
+ | from_int(value)
+</code></pre>
+<p>Compute a PublicKey object from integer abcissa.</p>
+<p><a name="cSecp256k1.PublicKey.from_seed"></a></p>
+<h4 id="from_seed">from_seed<a class="headerlink" href="#from_seed" title="Permanent link">#</a></h4>
+<pre><code class="language-python"> | @staticmethod
+ | from_seed(seed)
+</code></pre>
+<p>Compute a PublicKey object from byte abcissa.</p>
+<p><a name="cSecp256k1.PublicKey.from_secret"></a></p>
+<h4 id="from_secret">from_secret<a class="headerlink" href="#from_secret" title="Permanent link">#</a></h4>
+<pre><code class="language-python"> | @staticmethod
+ | from_secret(secret)
+</code></pre>
+<p>Compute a PublicKey object from secret passphrase.</p></div>
 </div>
 </div>
 <footer class="col-md-12">
