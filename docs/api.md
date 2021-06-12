@@ -156,7 +156,7 @@ class PublicKey(HexPoint)
 ```
 
 `ctypes` structure for secp256k1 public key with `x`and `y` attributes as hex
-bytes. It is a subclass of [`HexPoint`](python.md#hexpoint-objects).
+bytes. It is a subclass of [`HexPoint`](api.md#hexpoint-objects).
 
 <a name="cSecp256k1.PublicKey.decode"></a>
 #### decode
