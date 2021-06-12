@@ -23,34 +23,44 @@ class TestCSecp256k1Signatures:
     def test_C_ecdsa_sign(self, benchmark):
         signer = _ecdsa.sign
         sig = benchmark(signer, msg, pr_key, k, 1).contents
-        assert _ecdsa.verify(msg, pu_key.x, pu_key.y, sig.r, sig.s) == 1
-        assert _ecdsa.verify(_msg, pu_key.x, pu_key.y, sig.r, sig.s) != 1
+        assert not _ecdsa.verify(_msg, pu_key.x, pu_key.y, sig.r, sig.s)
+
+    def test_C_ecdsa_verify(self, benchmark):
+        sig = _ecdsa.sign(msg, pr_key, k, 1).contents
+        verifier = _ecdsa.verify
+        assert benchmark(verifier, msg, pu_key.x, pu_key.y, sig.r, sig.s)
 
     def test_C_ecdsa_rfc6949_sign(self, benchmark):
         signer = _ecdsa.sign
         sig = benchmark(signer, msg, pr_key, rfc6979_k, 1).contents
-        assert _ecdsa.verify(msg, pu_key.x, pu_key.y, sig.r, sig.s) == 1
-        assert _ecdsa.verify(_msg, pu_key.x, pu_key.y, sig.r, sig.s) != 1
+        assert not _ecdsa.verify(_msg, pu_key.x, pu_key.y, sig.r, sig.s)
+
+    def test_C_ecdsa_rfc6949_verify(self, benchmark):
+        sig = _ecdsa.sign(msg, pr_key, rfc6979_k, 1).contents
+        verifier = _ecdsa.verify
+        assert benchmark(verifier, msg, pu_key.x, pu_key.y, sig.r, sig.s)
 
     def test_C_schnorr_bcrypto410_sign(self, benchmark):
         signer = _schnorr.bcrypto410_sign
         sig = benchmark(signer, msg, pr_key).contents
-        assert _schnorr.bcrypto410_verify(
-            msg, pu_key.x, pu_key.y, sig.r, sig.s
-        ) == 1
-        assert _schnorr.bcrypto410_verify(
+        assert not _schnorr.bcrypto410_verify(
             _msg, pu_key.x, pu_key.y, sig.r, sig.s
-        ) != 1
+        )
+
+    def test_C_schnorr_bcrypto410_verify(self, benchmark):
+        sig = _schnorr.bcrypto410_sign(msg, pr_key).contents
+        verifier = _schnorr.bcrypto410_verify
+        assert benchmark(verifier, msg, pu_key.x, pu_key.y, sig.r, sig.s)
 
     def test_C_schnorr_sign(self, benchmark):
         signer = _schnorr.sign
         sig = benchmark(signer, msg, pr_key, k).contents
-        assert _schnorr.verify(
-            msg, pu_key.x, sig.r, sig.s
-        ) == 1
-        assert _schnorr.verify(
-            _msg, pu_key.x, sig.r, sig.s
-        ) != 1
+        assert not _schnorr.verify(_msg, pu_key.x, sig.r, sig.s)
+
+    def test_C_schnorr_verify(self, benchmark):
+        sig = _schnorr.sign(msg, pr_key, k).contents
+        verifier = _schnorr.verify
+        assert benchmark(verifier, msg, pu_key.x, sig.r, sig.s)
 
 
 try:
