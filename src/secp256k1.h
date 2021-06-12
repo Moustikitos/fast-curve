@@ -138,23 +138,22 @@ void y_from_x(mpz_t y, mpz_t x) {
     if (mpz_cmp(y_2, y_sq) != 0) {
         mpz_init_set_ui(y, 0);
     }
-    // return y
     mpz_clears(y_sq, y_2, pp1s4, NULL);
 }
 
 
 void point_add(Point *sum, Point *P1, Point *P2) {
-    int p1_is_inf = is_infinity(P1);
-    int p2_is_inf = is_infinity(P2);
-    if (p1_is_inf && p2_is_inf){
-        mpz_init_set_ui(sum->x, 0);
-        mpz_init_set_ui(sum->y,0);
-        return;
-    } else if (p1_is_inf) {
-        mpz_init_set(sum->x, P2->x);
-        mpz_init_set(sum->y, P2->y);
-        return;
-    } else if (p2_is_inf) {
+    if (is_infinity(P1)) {
+        if (is_infinity(P2)) {
+            mpz_init_set_ui(sum->x, 0);
+            mpz_init_set_ui(sum->y,0);
+            return;
+        } else {
+            mpz_init_set(sum->x, P2->x);
+            mpz_init_set(sum->y, P2->y);
+            return;   
+        }
+    } else if (is_infinity(P2)) {
         mpz_init_set(sum->x, P1->x);
         mpz_init_set(sum->y, P1->y);
         return;
@@ -176,7 +175,7 @@ void point_add(Point *sum, Point *P1, Point *P2) {
     mpz_sub_ui(pm2, p, 2);
     // if (xP1 == xP2):
     if (mpz_cmp(P1->x, P2->x) == 0) {
-        // if yP1 != yP2:
+        // if yP1 != yP2: --> point P2 not on curve
         if (mpz_cmp(P1->y, P2->y) != 0) {
             mpz_clears(x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda, NULL);
             return;
@@ -196,21 +195,19 @@ void point_add(Point *sum, Point *P1, Point *P2) {
         mpz_mul(lambda, diff_y, diff_x);
     }
     mpz_mod(lambda, lambda, p);
-
     // x3 = (lam * lam - xP1 - xP2) % p
     mpz_mul(x, lambda, lambda);
     mpz_sub(x, x, P1->x);
     mpz_sub(x, x, P2->x);
     mpz_mod(x, x, p);
-
     // return [x3, (lam * (xP1 - x3) - yP1) % p]
     mpz_sub(y, P1->x, x);
     mpz_mul(y, y, lambda);
     mpz_sub(y, y, P1->y);
     mpz_mod(y, y, p);
-
     mpz_init_set(sum->x, x);
     mpz_init_set(sum->y, y);
+
     mpz_clears(x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda, NULL);
 }
 
@@ -221,8 +218,7 @@ void point_mul(Point *prod, Point *P, mpz_t n) {
     mpz_init_set(tmp.y, P->y);
     mpz_init_set_ui(prod->x, 0);
     mpz_init_set_ui(prod->y, 0);
-
-    // for i in range(256):
+    // for i in number of bits:
     int dbits = mpz_sizeinbase(n, 2);
     for (int i = 0; i < dbits; i++) {
         // if ((n >> i) & 1):
@@ -244,7 +240,7 @@ EXPORT HexPoint *point_hexlify(Point *P) {
 }
 
 
-// for direct python use with ctypes
+// for direct python use within python
 EXPORT HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
     Point P1, P2, Sum;
     mpz_init_set_str(P1.x, x1, 16);
@@ -256,7 +252,7 @@ EXPORT HexPoint *py_point_add(char *x1, char*y1, char *x2, char *y2) {
 }
 
 
-// for direct python use with ctypes
+// for direct python use within python
 EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
     Point P, Mul;
     mpz_t n;
@@ -273,7 +269,7 @@ EXPORT char *hash_sha256(unsigned char *msg) {
 }
 
 
-// build point from hexadecimal string absisse value
+// build point from hexadecimal string absissa value
 EXPORT HexPoint *hex_point_from_hex_x(char *hex) {
     static Point P;
     mpz_init_set_str(P.x, hex, 16);

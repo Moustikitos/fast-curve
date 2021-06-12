@@ -91,6 +91,9 @@ EXPORT void main(){
     mpz_init_set_str(secret0, "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", 16);
     mpz_init_set_str(k, "63b10ab7890453eb4110b20cb3ed61004e684028c5d05cc4d046569e9cb4cdae", 16);
 
-    for (int i=0; i<1000; i++){sig = ecdsa_sign(msg, secret0, k, 1);}
+    for (int i=0; i<1000; i++){
+        sig = ecdsa_sign(msg, secret0, k, 1);
+    }
+
     gmp_printf("r = %Zx\ns = %Zx\n", sig->r, sig->s);
 }
