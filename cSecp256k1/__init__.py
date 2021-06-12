@@ -92,41 +92,40 @@ def _setNget(cls, attr, value):
 
 class HexPoint(ctypes.Structure):
     """
-    `ctypes` structure for secp256k1 curve point with `x`and `y` attributes
-    as hex bytes.
+`ctypes` structure for secp256k1 curve point with `x`and `y` attributes as hex
+bytes.
 
-    Attributes:
-        x (bytes): point absisse as hex bytes
-        y (bytes): point ordinate as hex bytes
+Attributes:
+    x (bytes): point absisse as hex bytes
+    y (bytes): point ordinate as hex bytes
 
-    ```python
-    >>> import cSecp256k1 as cs
-    >>> G = cs.HexPoint(
-    ...    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-    ...    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
-    )
-    >>> G.x  # return x value as hex bytes
-    b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-    >>> G[0]  # return x value as integer
-    55066263022277343669578718895168534326250603453777594175500187360389116729\
-    240
-    ```
+```python
+>>> import cSecp256k1 as cs
+>>> G = cs.HexPoint(
+...    b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+...    b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+)
+>>> G.x  # return x value as hex bytes
+b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+>>> G[0]  # return x value as integer
+55066263022277343669578718895168534326250603453777594175500187360389116729240
+```
 
-    Eliptic curve algebra is implented with python operator `+` and `*`.
+Eliptic curve algebra is implemented with python operator `+` and `*`.
 
-    ```python
-    >>> G * 2
-    <secp256k1 point:
-        x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
-        y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
-    >
-    >>> G + G
-    <secp256k1 point:
-        x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
-        y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
-    >
-    ```
-    """
+```python
+>>> G * 2
+<secp256k1 point:
+    x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+    y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+>
+>>> G + G
+<secp256k1 point:
+    x:b'c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+    y:b'1ae168fea63dc339a3c58419466ceaeef7f632653266d0e1236431a950cfe52a'
+>
+```
+"""
 
     _fields_ = [
         ("x", ctypes.c_char * 65),
@@ -173,13 +172,13 @@ class HexPoint(ctypes.Structure):
 
 class HexSig(ctypes.Structure):
     """
-    `ctypes` structure for secp256k1 signature with `r`and `s` attributes
-    as hex bytes.
+`ctypes` structure for secp256k1 signature with `r`and `s` attributes as hex
+bytes.
 
-    Attributes:
-        r (bytes): signature part #1 as hex bytes
-        s (bytes): signature part #2 as hex bytes
-    """
+Attributes:
+    r (bytes): signature part #1 as hex bytes
+    s (bytes): signature part #2 as hex bytes
+"""
 
     _fields_ = [
         ("r", ctypes.c_char * 65),
@@ -204,7 +203,7 @@ class HexSig(ctypes.Structure):
         return getattr(self, "_s", _setNget(self, "_s", int(self.s, 16)))
 
     def der(self):
-        """Generate DER signature as hexadecimal bytes string."""
+        """Encode signature as DER hexadecimal bytes string."""
         r = self[0].to_bytes(32, byteorder="big")
         s = self[1].to_bytes(32, byteorder="big")
         r = (b'\x00' if (r[0] & 0x80) == 0x80 else b'') + r
@@ -233,7 +232,7 @@ class HexSig(ctypes.Structure):
         )
 
     def raw(self):
-        """Generate RAW signature as hexadecimal bytes string."""
+        """Encode signature as RAW hexadecimal bytes string."""
         return self.r.zfill(64) + self.s.zfill(64)
 
     @staticmethod
@@ -243,9 +242,14 @@ class HexSig(ctypes.Structure):
 
 
 class PublicKey(HexPoint):
+    """
+`ctypes` structure for secp256k1 public key with `x`and `y` attributes as hex
+bytes. It is a subclass of [`HexPoint`](python.md#hexpoint-objects).
+"""
 
     @staticmethod
     def decode(enc):
+        """Return PublicKey object from secp256k1-encoded byte or string."""
         hPuk = _ecdsa.hex_puk_from_encoded(
             enc if isinstance(enc, bytes) else enc.encode()
         ).contents
@@ -253,22 +257,26 @@ class PublicKey(HexPoint):
 
     @staticmethod
     def from_hex(value):
+        """Compute a PublicKey object from hexadecimal abcissa."""
         hPuk = _ecdsa.hex_puk_from_hex(
             value if isinstance(value, bytes) else value.encode("utf-8")
         ).contents
         return PublicKey(hPuk.x, hPuk.y)
 
     @staticmethod
-    def from_secret(secret):
-        return PublicKey.from_hex(hash_sha256(secret))
-
-    @staticmethod
     def from_int(value):
+        """Compute a PublicKey object from integer abcissa."""
         return PublicKey.from_hex(b"%064x" % value)
 
     @staticmethod
     def from_seed(seed):
+        """Compute a PublicKey object from byte abcissa."""
         return PublicKey.from_hex(binascii.hexlify(seed))
+
+    @staticmethod
+    def from_secret(secret):
+        """Compute a PublicKey object from secret passphrase."""
+        return PublicKey.from_hex(hash_sha256(secret))
 
 
 class KeyRing(int):
@@ -362,6 +370,8 @@ G = HexPoint(
     b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
 )
 # ### DLL PROTOTYPING
+
+#: _ecdsa library
 _ecdsa = ctypes.CDLL(
     os.path.abspath(os.path.join(__path__[0], "_ecdsa%s" % EXT))
 )
@@ -374,6 +384,8 @@ _ecdsa.hex_puk_from_hex.restype = ctypes.POINTER(HexPoint)
 _ecdsa.sign.restype = ctypes.POINTER(HexSig)
 _ecdsa.hash_sha256.restype = ctypes.c_char_p
 _ecdsa.init()
+
+#: _schnorr library
 _schnorr = ctypes.CDLL(
     os.path.abspath(os.path.join(__path__[0], "_schnorr%s" % EXT))
 )

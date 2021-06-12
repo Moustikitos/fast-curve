@@ -10,7 +10,10 @@ hooks:
   # save manually edited markdown files from docs/
   pre-render:
   - python -c "import shutil;shutil.copy('docs/index.md', 'index.md')"
-  - python -c "import shutil;shutil.copy('docs/clib.md', 'clib.md')"
+  # - python -c "import shutil;shutil.copy('docs/clib.md', 'clib.md')"
+  post-render:
+  - python -c "import os;os.remove('index.md')"
+  # - python -c "import os;os.remove('clib.md')"
 
 renderer:
   output_directory: .
@@ -20,12 +23,13 @@ renderer:
     - title: Home
       name: index
       source: index.md
-    - title: C lib
-      name: clib
-      source: clib.md
-    - title: Python
+    # - title: C lib
+    #   name: clib
+    #   source: clib.md
+    - title: API
       contents:
         - '*'
+
   mkdocs_config:
     site_name: The fast curve Project
     repo_url: https://github.com/Moustikitos/fast-curve

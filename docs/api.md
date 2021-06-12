@@ -31,8 +31,8 @@ Generate a deterministic rfc6967 integer.
 class HexPoint(ctypes.Structure)
 ```
 
-`ctypes` structure for secp256k1 curve point with `x`and `y` attributes
-as hex bytes.
+`ctypes` structure for secp256k1 curve point with `x`and `y` attributes as hex
+bytes.
 
 **Attributes**:
 
@@ -48,11 +48,10 @@ as hex bytes.
 >>> G.x  # return x value as hex bytes
 b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 >>> G[0]  # return x value as integer
-55066263022277343669578718895168534326250603453777594175500187360389116729\
-240
+55066263022277343669578718895168534326250603453777594175500187360389116729240
 ```
   
-  Eliptic curve algebra is implented with python operator `+` and `*`.
+  Eliptic curve algebra is implemented with python operator `+` and `*`.
   
 ```python
 >>> G * 2
@@ -103,8 +102,8 @@ Encode point as a hex bytes.
 class HexSig(ctypes.Structure)
 ```
 
-`ctypes` structure for secp256k1 signature with `r`and `s` attributes
-as hex bytes.
+`ctypes` structure for secp256k1 signature with `r`and `s` attributes as hex
+bytes.
 
 **Attributes**:
 
@@ -118,7 +117,7 @@ as hex bytes.
  | der()
 ```
 
-Generate DER signature as hexadecimal bytes string.
+Encode signature as DER hexadecimal bytes string.
 
 <a name="cSecp256k1.HexSig.from_der"></a>
 #### from\_der
@@ -137,7 +136,7 @@ Return HexSig object from a DER signature string.
  | raw()
 ```
 
-Generate RAW signature as hexadecimal bytes string.
+Encode signature as RAW hexadecimal bytes string.
 
 <a name="cSecp256k1.HexSig.from_raw"></a>
 #### from\_raw
@@ -148,4 +147,64 @@ Generate RAW signature as hexadecimal bytes string.
 ```
 
 Return HexSig object from a RAW signature string.
+
+<a name="cSecp256k1.PublicKey"></a>
+## PublicKey Objects
+
+```python
+class PublicKey(HexPoint)
+```
+
+`ctypes` structure for secp256k1 public key with `x`and `y` attributes as hex
+bytes. It is a subclass of [`HexPoint`](python.md#hexpoint-objects).
+
+<a name="cSecp256k1.PublicKey.decode"></a>
+#### decode
+
+```python
+ | @staticmethod
+ | decode(enc)
+```
+
+Return PublicKey object from secp256k1-encoded byte or string.
+
+<a name="cSecp256k1.PublicKey.from_hex"></a>
+#### from\_hex
+
+```python
+ | @staticmethod
+ | from_hex(value)
+```
+
+Compute a PublicKey object from hexadecimal abcissa.
+
+<a name="cSecp256k1.PublicKey.from_int"></a>
+#### from\_int
+
+```python
+ | @staticmethod
+ | from_int(value)
+```
+
+Compute a PublicKey object from integer abcissa.
+
+<a name="cSecp256k1.PublicKey.from_seed"></a>
+#### from\_seed
+
+```python
+ | @staticmethod
+ | from_seed(seed)
+```
+
+Compute a PublicKey object from byte abcissa.
+
+<a name="cSecp256k1.PublicKey.from_secret"></a>
+#### from\_secret
+
+```python
+ | @staticmethod
+ | from_secret(secret)
+```
+
+Compute a PublicKey object from secret passphrase.
 
