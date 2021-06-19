@@ -1,11 +1,11 @@
-#include "secp256k1.h"
+#include "schnorr.h"
 
 /*
 schnorr signatures from
 https://github.com/sipa/bips/blob/bip-taproot/bip-0340/reference.py
 */
 
-EXPORT char *tagged_hash(char *tag, char *msg, int len_msg) {
+char *tagged_hash(char *tag, char *msg, int len_msg) {
     unsigned char hash[33];
     char cat[129 + len_msg];
     char *tag_hash = hash_sha256_s(tag, strlen(tag));
@@ -19,7 +19,7 @@ EXPORT char *tagged_hash(char *tag, char *msg, int len_msg) {
 }
 
 
-EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
+HexSig *sign(char *digest, char *secret, char *rand) {
     static HexSig hS;
     size_t i, len_digest;
     
@@ -75,7 +75,7 @@ EXPORT HexSig *sign(char *digest, char *secret, char *rand) {
 }
 
 
-EXPORT short verify(char *msg, char *x, char *hr, char*hs) {
+short verify(char *msg, char *x, char *hr, char*hs) {
     Point P;
     mpz_t big1;
     mpz_init_set_str(P.x, x, 16);
@@ -129,7 +129,7 @@ schnorr signatures from
 https://github.com/bcoin-org/bcrypto/blob/v4.1.0/lib/js/schnorr.js
 */
 
-EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
+HexSig *bcrypto410_sign(char *digest, char *secret) {
     static HexSig hS;
     size_t i, len_digest;
     mpz_t d0, msg;
@@ -179,7 +179,7 @@ EXPORT HexSig *bcrypto410_sign(char *digest, char *secret) {
 }
 
 
-EXPORT short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
+short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     mpz_t r, s, _y;
     mpz_init_set_str(_y, y, 16);
     mpz_init_set_str(r, hr, 16);

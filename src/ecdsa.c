@@ -1,8 +1,8 @@
-#include "secp256k1.h"
+#include "ecdsa.h"
 
 
 // Efficiency test
-Sig * ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
+Sig *ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
     static Sig sig;
     Point Q;
     mpz_t ns2, invk;
@@ -12,9 +12,7 @@ Sig * ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
     mpz_invert(invk, k, n);
     mpz_mod(sig.r, Q.x, n);
 
-    if (mpz_cmp_ui(sig.r, 0) == 0){
-        mpz_init_set_ui(sig.s, 0);
-    } else {
+    if (mpz_cmp_ui(sig.r, 0) != 0){
         mpz_mul(sig.s, secret0, sig.r);
         mpz_add(sig.s, sig.s, msg);
         mpz_mul(sig.s, sig.s, invk);
@@ -25,6 +23,8 @@ Sig * ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
         } else if (canonical > 0 && mpz_cmp(sig.s, ns2) > 0){
             mpz_sub(sig.s, n, sig.s);
         }
+    } else {
+        mpz_init_set_ui(sig.s, 0);
     }
 
     mpz_clears(invk, ns2, NULL);
@@ -32,7 +32,7 @@ Sig * ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
 }
 
 
-EXPORT HexSig *sign(char *digest, char *secret, char *nonce, short canonical) {
+HexSig *sign(char *digest, char *secret, char *nonce, short canonical) {
     static HexSig hS;
     Sig *sig;
     mpz_t msg, secret0, k;
@@ -50,7 +50,7 @@ EXPORT HexSig *sign(char *digest, char *secret, char *nonce, short canonical) {
 }
 
 
-EXPORT short verify(char *msg, char *x, char *y, char *hr, char*hs) {
+short verify(char *msg, char *x, char *y, char *hr, char*hs) {
     Point pubkey;
     mpz_t h, s, r;
 

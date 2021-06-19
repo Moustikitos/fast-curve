@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <gmp.h>
 
-#include "sha256.h"
 
 #if __linux__ 
     #define EXPORT extern
@@ -34,50 +33,6 @@ typedef struct {
 static mpz_t p, n;
 static Point G;
 #endif
-
-static char V2A[] = "0123456789abcdef";
-
-int A2V(char c) {
-    if ((c >= '0') && (c <= '9')){return c - '0';}
-    if ((c >= 'a') && (c <= 'f')){return c - 'a' + 10;}
-    else return 0;
-}
-
-
-char *hexlify(unsigned char *buffer, const int len_buffer) {
-    static char *hex;
-    char *phex;
-    hex = (char *)malloc((len_buffer << 1) + 1);
-    phex = hex;
-    for(int i=0; i<len_buffer; i++) {
-        *phex++ = V2A[(buffer[i] >> 4) & 0x0F];
-        *phex++ = V2A[buffer[i] & 0x0F];
-    }
-    *phex++ = '\0';
-    return hex;
-}
-
-
-unsigned char *unhexlify(char *buffer, const int len_buffer) {
-    static unsigned char *bstr;
-    int len = (len_buffer>>1);
-    bstr = (unsigned char *)malloc(len + 1);
-    for (int i = 0; i < len; i++) {
-        bstr[i] = (A2V(buffer[i<<1]) << 4) + A2V(buffer[(i<<1)+1]);
-    }
-    bstr[len] = '\0';
-    return bstr;
-}
-
-
-char *hash_sha256_s(unsigned char *msg, int len_msg) {
-    unsigned char hash[32];
-    SHA256_CTX ctx;
-    sha256_init(&ctx);
-    sha256_update(&ctx, msg, len_msg);
-    sha256_final(&ctx, hash);
-    return hexlify(hash, 32);
-}
 
 
 short is_infinity(Point *P) {
@@ -261,11 +216,6 @@ EXPORT HexPoint *py_point_mul(char *x, char*y, char *k) {
     mpz_init_set_str(n, k, 16);
     point_mul(&Mul, &P, n);
     return point_hexlify(&Mul);
-}
-
-
-EXPORT char *hash_sha256(unsigned char *msg) {
-    return hash_sha256_s(msg, strlen(msg));
 }
 
 
