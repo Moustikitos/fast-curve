@@ -54,6 +54,15 @@ Exctract content anywhere in python path defined by `sys.path`.
 
 # Versions
 
+## 1.0.5
+ - [x] minor C code tweaks
+ - [x] minor `setup.py` module tweaks
+
+## 1.0.4
+ - [x] C code improvement
+ - [x] code coverage improvement
+ - [x] pydoc-markdown documentation added
+
 ## 1.0.4
  - [x] C code improvement
  - [x] code coverage improvement
