@@ -68,10 +68,7 @@ else:
     include_dirs = [os.path.abspath('./src')]
     libraries = ['gmp']
     extra_link_args = []
-    if sys.platform.startswith("win"):
-        library_dirs = [r'C:\Msys\usr\lib']
-    else:
-        library_dirs = []
+    library_dirs = []
 
 # configure libraries
 libraries = [
@@ -130,7 +127,7 @@ kw = {
     "long_description_content_type": "text/markdown",
     "packages": ["cSecp256k1"],
     "install_requires": install_requires,
-    "tests_requires": ["pytest", "pytest-benchmark"],
+    "tests_require": ["pytest", "pytest-benchmark"],
     "libraries": libraries,
     "ext_modules": ext_modules,
     "cmdclass": cmd_class,
