@@ -1,7 +1,6 @@
 #include "ecdsa.h"
 
 
-// Efficiency test
 Sig *ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
     static Sig sig;
     Point Q;
@@ -32,34 +31,8 @@ Sig *ecdsa_sign(mpz_t msg, mpz_t secret0, mpz_t k, short canonical) {
 }
 
 
-HexSig *sign(char *digest, char *secret, char *nonce, short canonical) {
-    static HexSig hS;
-    Sig *sig;
-    mpz_t msg, secret0, k;
-
-    mpz_init_set_str(msg, digest, 16);
-    mpz_init_set_str(secret0, secret, 16);
-    mpz_init_set_str(k, nonce, 16);
-    mpz_mod(k, k, n);
-    sig = ecdsa_sign(msg, secret0, k, canonical);
-    mpz_get_str(hS.r, 16, sig->r);
-    mpz_get_str(hS.s, 16, sig->s);
-
-    mpz_clears(msg, secret0, k, NULL);
-    return &hS;
-}
-
-
-short verify(char *msg, char *x, char *y, char *hr, char*hs) {
-    Point pubkey;
-    mpz_t h, s, r;
-
-    mpz_init_set_str(pubkey.x, x, 16);
-    mpz_init_set_str(pubkey.y, y, 16);
-    mpz_init_set_str(r, hr, 16);
-    mpz_init_set_str(s, hs, 16);
-    mpz_init_set_str(h, msg, 16);
-    if (mpz_cmp_ui(r, 0) == 0 || mpz_cmp(r, n) > 0 || mpz_cmp(s, n) > 0){
+short verify(mpz_t msg, Point *pubkey, Sig *sig) {
+    if (mpz_cmp_ui(sig->r, 0) == 0 || mpz_cmp(sig->r, n) > 0 || mpz_cmp(sig->s, n) > 0){
         return 0;
     }
 
@@ -67,33 +40,104 @@ short verify(char *msg, char *x, char *y, char *hr, char*hs) {
     mpz_t c, hc, rc, nm2;
     short result;
     mpz_inits(c, hc, rc, nm2, GQ.x, GQ.y, NULL);
-    mpz_invert(c, s, n);
-    mpz_mul(hc, h, c);
+    mpz_invert(c, sig->s, n);
+    mpz_mul(hc, msg, c);
     mpz_mod(hc, hc, n);
     point_mul(&u1G, &G, hc);
-    mpz_mul(rc, r, c);
+    mpz_mul(rc, sig->r, c);
     mpz_mod(rc, rc, n);
-    point_mul(&u2Q, &pubkey, rc);
+    point_mul(&u2Q, pubkey, rc);
     point_add(&GQ, &u1G, &u2Q);
     mpz_mod(GQ.x, GQ.x, n);
-    result = mpz_cmp(GQ.x, r) == 0 ? 1 : 0;
+    result = mpz_cmp(GQ.x, sig->r) == 0 ? 1 : 0;
 
-    mpz_clears(h, s, r, c, hc, rc, nm2, NULL);
+    mpz_clears(c, hc, rc, nm2, NULL);
     return result;
 }
 
 
-EXPORT void main(){
-    Sig *sig;
+static PyObject *_curve_init(PyObject *self, PyObject *args) {
+    init();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
-    mpz_t msg, secret0, k;
-    mpz_init_set_str(msg, "3819ff1b5125e14102ae429929e815d6fada758d4a6886a03b1b1c64aca3a53a", 16);
-    mpz_init_set_str(secret0, "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b", 16);
-    mpz_init_set_str(k, "63b10ab7890453eb4110b20cb3ed61004e684028c5d05cc4d046569e9cb4cdae", 16);
 
-    for (int i=0; i<1000; i++){
-        sig = ecdsa_sign(msg, secret0, k, 1);
+static PyObject *_ecdsa_sign(PyObject *self, PyObject *args) {
+    char *data, *secret, *rnd;
+    short canonical;
+
+    if (!PyArg_ParseTuple(args, "sssh", &data, &secret, &rnd, &canonical)) {
+        return NULL;
     }
 
-    gmp_printf("r = %Zx\ns = %Zx\n", sig->r, sig->s);
+    mpz_t msg, secret0, k;
+    mpz_init_set_str(msg, data, 16);
+    mpz_init_set_str(secret0, secret, 16);
+    mpz_init_set_str(k, rnd, 16);
+
+    Sig *sig = ecdsa_sign(msg, secret0, k, canonical);
+    PyObject *ret = Py_BuildValue("ss", mpz_get_str(NULL, 16, sig->r), mpz_get_str(NULL, 16, sig->s));
+
+    mpz_clears(msg, secret0, k, NULL);
+    return ret;
 }
+
+
+static PyObject *_ecdsa_verify(PyObject *self, PyObject *args) {
+    // char * r, * s, * msg, * qx, * qy, * p, * a, * b, * q, * gx, * gy;
+
+    // if (!PyArg_ParseTuple(args, "sssssssssss", &r, &s, &msg, &qx, &qy, &p, &a, &b, &q, &gx, &gy)) {
+    //     return NULL;
+    // }
+
+    // Sig sig;
+    // mpz_init_set_str(sig.r, r, 10);
+    // mpz_init_set_str(sig.s, s, 10);
+
+    // CurveZZ_p * curve = buildCurveZZ_p(p, a, b, q, gx, gy, 10);
+    // int valid = 0;
+
+    // PointZZ_p * Q = buildPointZZ_p(qx, qy, 10);
+    // valid = verifyZZ_p(&sig, msg, Q, curve);
+
+    // destroyCurveZZ_p(curve);
+    // destroyPointZZ_p(Q);
+
+    // mpz_clears(sig.r, sig.s, NULL);
+    // return Py_BuildValue("O", valid ? Py_True : Py_False);
+}
+
+
+static PyMethodDef _ecdsa__methods__[] = {
+    {"init", _curve_init, METH_VARARGS, "Initialize SECP256K1 curve"},
+    {"sign", _ecdsa_sign, METH_VARARGS, "Sign a message via ECDSA."},
+    {"verify", _ecdsa_verify, METH_VARARGS, "Verify a signature via ECDSA."},
+    {NULL, NULL, 0, NULL}  /* Sentinel */
+};
+
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_ecdsa",  /* m_name */
+    NULL,      /* m_doc */
+    -1,  /* m_size */
+    _ecdsa__methods__,  /* m_methods */
+    NULL,  /* m_reload */
+    NULL,  /* m_traverse */
+    NULL,  /* m_clear */
+    NULL,  /* m_free */
+};
+
+PyMODINIT_FUNC PyInit__ecdsa(void) {
+    PyObject * m = PyModule_Create(&moduledef);
+    return m;
+}
+
+#else
+PyMODINIT_FUNC init_ecdsa(void) {
+    Py_InitModule("_ecdsa", _ecdsa__methods__);
+}
+
+#endif

@@ -68,10 +68,7 @@ else:
     include_dirs = [os.path.abspath('./src')]
     libraries = ['gmp']
     extra_link_args = []
-    if sys.platform.startswith("win"):
-        library_dirs = [r'C:\Msys\usr\lib']
-    else:
-        library_dirs = []
+    library_dirs = []
 
 # configure libraries
 libraries = [
@@ -101,13 +98,15 @@ lib_ecdsa, lib_schnorr = libraries
 
 cmd_class = {
     "build_ctypes": build_ctypes,
-    "build_ext": build_ctypes
+    "build_ext": build_ext
 }
 
 ext_modules = [
     Extension('cSecp256k1._ecdsa', **lib_ecdsa[-1]),
-    Extension('cSecp256k1._schnorr', **lib_schnorr[-1])
+    # Extension('cSecp256k1._schnorr', **lib_schnorr[-1])
 ]
+
+print(lib_ecdsa[-1])
 
 with open("VERSION") as f1, open("README.md") as f2:
     VERSION = f1.read().strip()
@@ -130,7 +129,7 @@ kw = {
     "long_description_content_type": "text/markdown",
     "packages": ["cSecp256k1"],
     "install_requires": install_requires,
-    "tests_requires": ["pytest", "pytest-benchmark"],
+    # "test_requires": ["pytest", "pytest-benchmark"],
     "libraries": libraries,
     "ext_modules": ext_modules,
     "cmdclass": cmd_class,

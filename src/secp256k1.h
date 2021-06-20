@@ -1,3 +1,4 @@
+#include "Python.h"
 #include <string.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -296,7 +297,7 @@ EXPORT HexPoint *hex_puk_from_hex(char *hex) {
 }
 
 
-EXPORT void init() {
+void init() {
     mpz_init_set_str(p, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", 16);
     mpz_init_set_str(n, "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
     mpz_init_set_str(G.x, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16);
