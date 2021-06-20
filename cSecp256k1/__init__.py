@@ -8,7 +8,6 @@ signature about 60 times faster.
 
 import os
 import sys
-import time
 import hmac
 import ctypes
 import random
