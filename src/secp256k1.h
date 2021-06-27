@@ -35,12 +35,18 @@ static Point G;
 #endif
 
 
-short is_infinity(Point *P) {
+void set_infinity(Point *P) {
+    mpz_init_set_ui(P->x, 0);
+    mpz_init_set_ui(P->y, 0);
+}
+
+
+short is_infinity(const Point *P) {
     return mpz_cmp_ui(P->x, 0) == 0 && mpz_cmp_ui(P->y, 0) == 0 ? 1 : 0;
 }
 
 
-short has_square_y(Point *P) {
+short has_square_y(const Point *P) {
     return is_infinity(P) == 0 && mpz_jacobi(P->y, p) == 1 ? 1 : 0;
 }
 
@@ -97,12 +103,18 @@ void y_from_x(mpz_t y, mpz_t x) {
 }
 
 
+Point *point_copy(const Point *P){
+    static Point copy;
+    mpz_init_set(copy.x, P->x);
+    mpz_init_set(copy.y, P->y);
+    return &copy;
+}
+
+
 void point_add(Point *sum, Point *P1, Point *P2) {
     if (is_infinity(P1)) {
         if (is_infinity(P2)) {
-            mpz_init_set_ui(sum->x, 0);
-            mpz_init_set_ui(sum->y,0);
-            return;
+            return set_infinity(sum);
         } else {
             mpz_init_set(sum->x, P2->x);
             mpz_init_set(sum->y, P2->y);
@@ -119,71 +131,76 @@ void point_add(Point *sum, Point *P1, Point *P2) {
         mpz_sub(negy, p, P2->y);
         if (mpz_cmp(P1->x, P2->x) == 0 && mpz_cmp(P1->y, negy) == 0) {
             mpz_clear(negy);
-            mpz_init_set_ui(sum->x, 0);
-            mpz_init_set_ui(sum->y,0);
-            return;
+            return set_infinity(sum);
         }
     }
 
-    mpz_t x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda;
-    mpz_inits(x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda, NULL);
+    mpz_t pm2, lambda;
+    mpz_inits(pm2, lambda, NULL);
     mpz_sub_ui(pm2, p, 2);
     // if (xP1 == xP2):
     if (mpz_cmp(P1->x, P2->x) == 0) {
         // if yP1 != yP2: --> point P2 not on curve
         if (mpz_cmp(P1->y, P2->y) != 0) {
-            mpz_clears(x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda, NULL);
-            return;
+            mpz_clears(pm2, lambda, NULL);
+            return set_infinity(sum);
         } else {
+            mpz_t xp1_2, _2yp1;
+            mpz_inits(xp1_2, _2yp1, NULL);
             // lam = (3 * xP1 * xP1 * pow(2 * yP1, p - 2, p)) % p
             mpz_mul(xp1_2, P1->x, P1->x);   // xp1_2 <- P1.x * P1.x 
             mpz_mul_ui(xp1_2, xp1_2, 3);    // xp1_2 <- 3 * xp1_2
             mpz_mul_ui(_2yp1, P1->y, 2);    // _2yp1 <- 2 * P1.y
             mpz_powm(_2yp1, _2yp1, pm2, p); // _2yp1 <- pow(_2yp1, pm2, p)
             mpz_mul(lambda, xp1_2, _2yp1);
+            mpz_clears(xp1_2, _2yp1, NULL);
         }
     } else {
+        mpz_t diff_x, diff_y;
+        mpz_inits(diff_x, diff_y, NULL);
         // lam = ((yP2 - yP1) * pow(xP2 - xP1, p - 2, p)) % p
         mpz_sub(diff_y, P2->y, P1->y);
         mpz_sub(diff_x, P2->x, P1->x);
         mpz_powm(diff_x, diff_x, pm2, p);
         mpz_mul(lambda, diff_y, diff_x);
+        mpz_clears(diff_x, diff_y, NULL);
     }
     mpz_mod(lambda, lambda, p);
     // x3 = (lam * lam - xP1 - xP2) % p
-    mpz_mul(x, lambda, lambda);
-    mpz_sub(x, x, P1->x);
-    mpz_sub(x, x, P2->x);
-    mpz_mod(x, x, p);
+    mpz_inits(sum->x, sum->y, NULL);
+    mpz_mul(sum->x, lambda, lambda);
+    mpz_sub(sum->x, sum->x, P1->x);
+    mpz_sub(sum->x, sum->x, P2->x);
+    mpz_mod(sum->x, sum->x, p);
     // return [x3, (lam * (xP1 - x3) - yP1) % p]
-    mpz_sub(y, P1->x, x);
-    mpz_mul(y, y, lambda);
-    mpz_sub(y, y, P1->y);
-    mpz_mod(y, y, p);
-    mpz_init_set(sum->x, x);
-    mpz_init_set(sum->y, y);
+    mpz_sub(sum->y, P1->x, sum->x);
+    mpz_mul(sum->y, sum->y, lambda);
+    mpz_sub(sum->y, sum->y, P1->y);
+    mpz_mod(sum->y, sum->y, p);
 
-    mpz_clears(x, y, xp1_2, pm2, _2yp1, diff_x, diff_y, lambda, NULL);
+    mpz_clears(pm2, lambda, NULL);
 }
 
 
-void point_mul(Point *prod, Point *P, mpz_t n) {
-    Point tmp;
-    mpz_init_set(tmp.x, P->x);
-    mpz_init_set(tmp.y, P->y);
+void point_mul(Point *prod, const Point *P, const mpz_t scalar) {
+    Point R, *tmp;
+    mpz_init_set(R.x, P->x);
+    mpz_init_set(R.y, P->y);
     mpz_init_set_ui(prod->x, 0);
     mpz_init_set_ui(prod->y, 0);
     // for i in number of bits:
-    int dbits = mpz_sizeinbase(n, 2);
+    int dbits = mpz_sizeinbase(scalar, 2);
     for (int i = 0; i < dbits; i++) {
         // if ((n >> i) & 1):
-        if (mpz_tstbit(n, i)) {
+        if (mpz_tstbit(scalar, i)) {
             // R = point_add(R, P)
-            point_add(prod, prod, &tmp);
+            point_add(prod, &R, point_copy(prod));
         }
         // P = point_add(P, P)
-        point_add(&tmp, &tmp, &tmp);
+        tmp = point_copy(&R);
+        point_add(&R, tmp, tmp);
     }
+    mpz_clears(R.x, R.y, tmp->x, tmp->y, NULL);
 }
 
 

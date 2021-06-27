@@ -37,8 +37,8 @@ class TestCSecp256k1Hash:
         assert puk.x == puk0.x and puk.y == puk0.y
 
     def test_algebra(self):
-        _2G = secp256k1.G * 2
         GpG = secp256k1.G + secp256k1.G
+        _2G = secp256k1.G * 2
         assert _2G.x == GpG.x and _2G.y == GpG.y
 
     def test_hash_sha256(self):

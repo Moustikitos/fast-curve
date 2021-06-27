@@ -114,7 +114,7 @@ short verify(char *msg, char *x, char *hr, char*hs) {
     mpz_sub(e, n, e);
     point_mul(&Gs, &G, s);
     point_mul(&R, &P, e);
-    point_add(&R, &Gs, &R);
+    point_add(&R, &Gs, point_copy(&R));
     
     if (mpz_cmp(R.x, r) == 0){
         mpz_clears(r, s, e, P.x, P.y, R.x, R.y, Gs.x, Gs.y, big1, NULL);
@@ -210,7 +210,7 @@ short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
 
     Point R;
     point_mul(&R, &G, s);
-    point_add(&R, &R, &P);
+    point_add(&R, point_copy(&R), &P);
 
     if (mpz_cmp(R.x, r) == 0){
         mpz_clears(r, s, _y, e, P.x, P.y, R.x, R.y, NULL);
