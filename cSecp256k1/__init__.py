@@ -134,6 +134,7 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
     def __setattr__(self, attr, value):
         if attr in HexPoint._fields_:
             delattr(self, "_"+attr, None)
+            value = value.zfill(64)
         ctypes.Structure.__setattr__(self, attr, value)
 
     def __repr__(self):
@@ -166,7 +167,7 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
 
     def encode(self):
         """Encode point as a hex bytes."""
-        return _ecdsa.encoded_from_hex_puk(self.x, self.y)
+        return (b"03" if self[1] & 1 else b"02") + self.x.zfill(64)
 
 
 class HexSig(ctypes.Structure):
@@ -187,6 +188,7 @@ Attributes:
     def __setattr__(self, attr, value):
         if attr in HexSig._fields_:
             delattr(self, "_"+attr, None)
+            value = value.zfill(64)
         ctypes.Structure.__setattr__(self, attr, value)
 
     def __repr__(self):
