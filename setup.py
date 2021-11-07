@@ -36,7 +36,7 @@ class build_ctypes(build_ext):
         build_ext.__init__(self, *args, **kw)
 
     def build_extension(self, ext):
-        return super().build_extension(ext)
+        return build_ext().build_extension(ext)
 
     def get_export_symbols(self, ext):
         return ext.export_symbols
