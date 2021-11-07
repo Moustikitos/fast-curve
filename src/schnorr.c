@@ -19,6 +19,21 @@ char *tagged_hash(char *tag, char *msg, int len_msg) {
 }
 
 
+char *_mpz_get_str_16(mpz_t value){
+    static char str_16[65];
+    mpz_get_str(str_16, 16, value);
+
+    size_t len_str_16 = strlen(str_16);
+    size_t delta = 64 - len_str_16;
+    if (delta > 0){
+        for (size_t i=63; i >= delta; i--){str_16[i] = str_16[i-delta];}
+        for (size_t i=0; i < delta; i++){str_16[i] = '0';}
+    }
+    str_16[64] = '\0';
+    return str_16;
+}
+
+
 HexSig *sign(char *digest, char *secret, char *rand) {
     static HexSig hS;
     size_t i, len_digest;
@@ -138,11 +153,11 @@ HexSig *bcrypto410_sign(char *digest, char *secret) {
     mpz_init_set_str(msg, digest, 16);
     mpz_init_set_str(d0, secret, 16);
     
-    mpz_t k; 
     char to_hash[131 + len_digest];
     for (i=0; i < 64; i++){to_hash[i] = secret[i];}
     for (i=64; i < 64+len_digest; i++){to_hash[i] = digest[i-64];}
     to_hash[i] = '\0';
+    mpz_t k; 
     mpz_init_set_str(k, hash_sha256(unhexlify(to_hash, i)), 16);
     mpz_mod(k, k, n);
     if (mpz_cmp_ui(k, 0) == 0){
@@ -156,16 +171,23 @@ HexSig *bcrypto410_sign(char *digest, char *secret) {
     if (mpz_jacobi(R.y, p) != 1){mpz_sub(k, n, k);}
 
     Point P;
-    mpz_t e;
-    char xP[65]; 
+    char *xP;
     point_mul(&P, &G, d0);
-    mpz_get_str(xP, 16, P.x);
-    for (i=0; i < 64; i++){to_hash[i] = hS.r[i];}
+    xP = _mpz_get_str_16(P.x);
+    // check if len r == 64 and left fill with '0' if not
+    size_t len_r = strlen(hS.r);
+    size_t delta = 64 - len_r;
+    if (delta > 0){
+        for (i=0; i < delta; i++){to_hash[i] = '0';}
+    }
+    // and continue concatenation
+    for (i=delta; i < 64; i++){to_hash[i] = hS.r[i-delta];}
     to_hash[i] = '0';
-    to_hash[i+1] = mpz_tstbit(P.y, 0) == 0 ? '2' : '3';
+    to_hash[i+1] = mpz_odd_p(P.y) == 0 ? '2' : '3';
     for (i=66; i < 130; i++){to_hash[i] = xP[i-66];}
     for (i=130; i < 130+len_digest; i++){to_hash[i] = digest[i-130];}
     to_hash[i] = '\0';
+    mpz_t e;
     mpz_init_set_str(e, hash_sha256(unhexlify(to_hash, i)), 16);
     mpz_mod(e, e, n);
 
@@ -190,12 +212,19 @@ short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     }
 
     mpz_t e;
-    int i;
-    int len_msg = strlen(msg);
+    size_t i;
+    size_t len_msg = strlen(msg);
     char to_hash[131 + len_msg];
-    for (i=0; i < 64; i++){to_hash[i] = hr[i];}
+    // check if len hr == 64 and left fill with '0' if not
+    size_t len_hr = strlen(hr);
+    size_t delta = 64 - len_hr;
+    if (delta > 0){
+        for (i=0; i < delta; i++){to_hash[i] = '0';}
+    }
+    // and continue concatenation
+    for (i=delta; i < 64; i++){to_hash[i] = hr[i-delta];}
     to_hash[64] = '0';
-    to_hash[64+1] = mpz_tstbit(_y, 0) == 0 ? '2' : '3';
+    to_hash[64+1] = mpz_odd_p(_y) == 0 ? '2' : '3';
     for (i=66; i < 130; i++){to_hash[i] = x[i-66];}
     for (i=130; i < 130+len_msg; i++){to_hash[i] = msg[i-130];}
     to_hash[i] = '\0';
