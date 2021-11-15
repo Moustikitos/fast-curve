@@ -217,7 +217,7 @@ short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     size_t len_msg = strlen(msg);
     char to_hash[131 + len_msg];
     tmp = _mpz_get_str_16(r);
-    for (i=0; i < 64; i++){to_hash[i] = hr[i];}
+    for (i=0; i < 64; i++){to_hash[i] = tmp[i];}
     to_hash[64] = '0';
     to_hash[64+1] = mpz_odd_p(P.y) == 0 ? '2' : '3';
     tmp = _mpz_get_str_16(P.x);
