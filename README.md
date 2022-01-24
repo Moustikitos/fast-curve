@@ -49,10 +49,13 @@ python -m pip install git+https://github.com/Moustikitos/fast-curve.git
 ```
 
 For **Windows users**, a built package is available
-[here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.0.6-win64.7z).
+[here](https://github.com/Moustikitos/fast-curve/raw/master/download/cSecp256k1-1.1.1-win64.7z).
 Exctract content anywhere in python path defined by `sys.path`.
 
 # Versions
+
+## 1.1.1
+ - [x] exclusive use of `hash_sha256_s` in `schnorr.c`
 
 ## 1.0.6
  - [x] bugfix in `bcrypto410_*` schnorr signature
