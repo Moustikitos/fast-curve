@@ -160,7 +160,7 @@ HexSig *bcrypto410_sign(char *digest, char *secret) {
     to_hash[i] = '\0';
 
     mpz_t k; 
-    mpz_init_set_str(k, hash_sha256(unhexlify(to_hash, i)), 16);
+    mpz_init_set_str(k, hash_sha256_s(unhexlify(to_hash, i), i>>1), 16);
     mpz_mod(k, k, n);
     if (mpz_cmp_ui(k, 0) == 0){
         mpz_clears(k, d0, msg, NULL);
@@ -185,7 +185,7 @@ HexSig *bcrypto410_sign(char *digest, char *secret) {
     to_hash[i] = '\0';
 
     mpz_t e;
-    mpz_init_set_str(e, hash_sha256(unhexlify(to_hash, i)), 16);
+    mpz_init_set_str(e, hash_sha256_s(unhexlify(to_hash, i), i>>1), 16);
     mpz_mod(e, e, n);
 
     mpz_mul(e, e, d0);
@@ -226,7 +226,7 @@ short bcrypto410_verify(char *msg, char *x, char *y, char *hr, char*hs) {
     to_hash[i] = '\0';
 
     mpz_t e;
-    mpz_init_set_str(e, hash_sha256(unhexlify(to_hash, i)), 16);
+    mpz_init_set_str(e, hash_sha256_s(unhexlify(to_hash, i), i>>1), 16);
     mpz_mod(e, e, n);
     mpz_sub(e, n, e);
     point_mul(&P, &P, e);
