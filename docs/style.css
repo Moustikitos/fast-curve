@@ -1,0 +1,4 @@
+h2{font-weight: bold;}
+h4{font-weight: bold;}
+body::before{background: none;}
+.hljs{background-color: var(--light);}

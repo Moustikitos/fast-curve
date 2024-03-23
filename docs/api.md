@@ -1,30 +1,36 @@
-<a name="cSecp256k1"></a>
+<a id="cSecp256k1"></a>
+
 # cSecp256k1
 
-`cSecp256k1` is a `ctypes` binding that provides fast computation on
-`SECP256K1` curve. `ECDSA` signature is about 140 times faster than [pure
-python](https://github.com/Moustikitos/elliptic-curve) implementation,
-`SCHNORR` signature about 60 times faster.
+`cSecp256k1` is a `ctypes` binding providing fast computation on `SECP256K1`
+curve. `ECDSA` signature is about 140 times faster than [pure python]
+(https://github.com/Moustikitos/elliptic-curve) implementation, `SCHNORR`
+signature about 60 times faster.
 
-<a name="cSecp256k1.rand_k"></a>
+<a id="cSecp256k1.rand_k"></a>
+
 #### rand\_k
 
 ```python
-rand_k()
+def rand_k() -> int
 ```
 
 Generate a random secp256k1 integer (in range [1..p]).
 
-<a name="cSecp256k1.rfc6979_k"></a>
+<a id="cSecp256k1.rfc6979_k"></a>
+
 #### rfc6979\_k
 
 ```python
-rfc6979_k(msg, secret0, V=None)
+def rfc6979_k(msg: bytes,
+              secret0: bytes,
+              V: bytes = None) -> typing.Tuple[int, bytes]
 ```
 
 Generate a deterministic rfc6967 integer.
 
-<a name="cSecp256k1.HexPoint"></a>
+<a id="cSecp256k1.HexPoint"></a>
+
 ## HexPoint Objects
 
 ```python
@@ -66,36 +72,40 @@ b'79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 >
 ```
 
-<a name="cSecp256k1.HexPoint.from_int"></a>
+<a id="cSecp256k1.HexPoint.from_int"></a>
+
 #### from\_int
 
 ```python
- | @staticmethod
- | from_int(value)
+@staticmethod
+def from_int(value: int)
 ```
 
 Build curve point from integer absice.
 
-<a name="cSecp256k1.HexPoint.from_hex"></a>
+<a id="cSecp256k1.HexPoint.from_hex"></a>
+
 #### from\_hex
 
 ```python
- | @staticmethod
- | from_hex(value)
+@staticmethod
+def from_hex(value: typing.Union[bytes, str])
 ```
 
-Build curve point from hex string absice.
+Build curve point from hex absice.
 
-<a name="cSecp256k1.HexPoint.encode"></a>
+<a id="cSecp256k1.HexPoint.encode"></a>
+
 #### encode
 
 ```python
- | encode()
+def encode() -> str
 ```
 
-Encode point as a hex bytes.
+Encode point as an hexadecimal bytes string.
 
-<a name="cSecp256k1.HexSig"></a>
+<a id="cSecp256k1.HexSig"></a>
+
 ## HexSig Objects
 
 ```python
@@ -110,45 +120,50 @@ bytes.
 - `r` _bytes_ - signature part `1` as hex bytes
 - `s` _bytes_ - signature part `2` as hex bytes
 
-<a name="cSecp256k1.HexSig.der"></a>
+<a id="cSecp256k1.HexSig.der"></a>
+
 #### der
 
 ```python
- | der()
+def der() -> str
 ```
 
-Encode signature as DER hexadecimal bytes string.
+Encode signature as DER hexadecimal string.
 
-<a name="cSecp256k1.HexSig.from_der"></a>
+<a id="cSecp256k1.HexSig.from_der"></a>
+
 #### from\_der
 
 ```python
- | @staticmethod
- | from_der(der)
+@staticmethod
+def from_der(der: str)
 ```
 
 Return HexSig object from a DER signature string.
 
-<a name="cSecp256k1.HexSig.raw"></a>
+<a id="cSecp256k1.HexSig.raw"></a>
+
 #### raw
 
 ```python
- | raw()
+def raw() -> str
 ```
 
-Encode signature as RAW hexadecimal bytes string.
+Encode signature as RAW hexadecimal string.
 
-<a name="cSecp256k1.HexSig.from_raw"></a>
+<a id="cSecp256k1.HexSig.from_raw"></a>
+
 #### from\_raw
 
 ```python
- | @staticmethod
- | from_raw(raw)
+@staticmethod
+def from_raw(raw: str)
 ```
 
-Return HexSig object from a RAW signature string.
+Return HexSig object from RAW hexadecimal string.
 
-<a name="cSecp256k1.PublicKey"></a>
+<a id="cSecp256k1.PublicKey"></a>
+
 ## PublicKey Objects
 
 ```python
@@ -158,52 +173,57 @@ class PublicKey(HexPoint)
 `ctypes` structure for secp256k1 public key with `x`and `y` attributes as hex
 bytes. It is a subclass of [`HexPoint`](api.md#hexpoint-objects).
 
-<a name="cSecp256k1.PublicKey.decode"></a>
+<a id="cSecp256k1.PublicKey.decode"></a>
+
 #### decode
 
 ```python
- | @staticmethod
- | decode(enc)
+@staticmethod
+def decode(enc)
 ```
 
-Return PublicKey object from secp256k1-encoded byte or string.
+Return PublicKey object from secp256k1-encoded bytes or string.
 
-<a name="cSecp256k1.PublicKey.from_hex"></a>
+<a id="cSecp256k1.PublicKey.from_hex"></a>
+
 #### from\_hex
 
 ```python
- | @staticmethod
- | from_hex(value)
+@staticmethod
+def from_hex(secret)
 ```
 
-Compute a PublicKey object from hexadecimal abcissa.
+Compute a PublicKey object from hexadecimal secret abcissa.
 
-<a name="cSecp256k1.PublicKey.from_int"></a>
+<a id="cSecp256k1.PublicKey.from_int"></a>
+
 #### from\_int
 
 ```python
- | @staticmethod
- | from_int(value)
+@staticmethod
+def from_int(value: int)
 ```
 
-Compute a PublicKey object from integer abcissa.
+Compute a PublicKey object from integer secret abcissa.
 
-<a name="cSecp256k1.PublicKey.from_seed"></a>
+<a id="cSecp256k1.PublicKey.from_seed"></a>
+
 #### from\_seed
 
 ```python
- | @staticmethod
- | from_seed(seed)
+@staticmethod
+def from_seed(seed: bytes)
 ```
 
-Compute a PublicKey object from byte abcissa.
+Compute a PublicKey object from bytes secret abcissa.
 
-<a name="cSecp256k1.PublicKey.from_secret"></a>
+<a id="cSecp256k1.PublicKey.from_secret"></a>
+
 #### from\_secret
 
 ```python
- | @staticmethod
- | from_secret(secret)
+@staticmethod
+def from_secret(passphrase: str)
 ```
 
 Compute a PublicKey object from secret passphrase.
