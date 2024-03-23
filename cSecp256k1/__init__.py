@@ -9,33 +9,28 @@ signature about 60 times faster.
 import os
 import sys
 import hmac
+import typing
 import ctypes
 import random
 import hashlib
 import getpass
 import binascii
 
-try:
-    # python 3.x
-    from importlib import machinery
-    lib_suffix = machinery.all_suffixes()[-1]
-except ImportError:
-    # python 2.x
-    import imp
-    import future
-    from builtins import int, bytes
-    lib_suffix = imp.get_suffixes()[0][0]
+from importlib import machinery
 
 # on win32 platform python extensions are *.pyd, *.dll is needed
-EXT = ".dll" if sys.platform.startswith("win") else lib_suffix
+EXT = \
+    ".dll" if sys.platform.startswith("win") else machinery.all_suffixes()[-1]
 
 
-def rand_k():
+def rand_k() -> int:
     """Generate a random secp256k1 integer (in range [1..p])."""
     return random.getrandbits(p.bit_length()) % p
 
 
-def rfc6979_k(msg, secret0, V=None):
+def rfc6979_k(
+    msg: bytes, secret0: bytes, V: bytes = None
+) -> typing.Tuple[int, bytes]:
     """Generate a deterministic rfc6967 integer."""
     hasher = hashlib.sha256
     if (V is None):
@@ -66,13 +61,15 @@ def rfc6979_k(msg, secret0, V=None):
         V = hmac.new(K, V, hasher).digest()
 
 
-def hash_sha256(msg):
+def hash_sha256(msg: typing.Union[str, bytes]) -> bytes:
     return hashlib.sha256(
         msg if isinstance(msg, bytes) else msg.encode()
     ).hexdigest().encode()
 
 
-def tagged_hash(tag, msg):
+def tagged_hash(
+    tag: typing.Union[str, bytes], msg: typing.Union[str, bytes]
+) -> bytes:
     msg = binascii.hexlify(msg if isinstance(msg, bytes) else msg.encode())
     return _schnorr.tagged_hash(
         tag if isinstance(tag, bytes) else tag.encode(), msg, len(msg)
@@ -81,7 +78,7 @@ def tagged_hash(tag, msg):
 
 # try to get attribute `attr` from class `cls`. If not found set it and return
 # value
-def _setNget(cls, attr, value):
+def _setNget(cls: object, attr: str, value: typing.Any) -> typing.Any:
     v = getattr(cls, attr, None)
     if v != value:
         setattr(cls, attr, value)
@@ -131,16 +128,16 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
         ("y", ctypes.c_char * 65),
     ]
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value: typing.Any) -> None:
         if attr in HexPoint._fields_:
-            delattr(self, "_"+attr, None)
+            delattr(self, "_" + attr, None)
             value = value.zfill(64)
         ctypes.Structure.__setattr__(self, attr, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<secp256k1 point:\n  x:%s\n  y:%s\n>" % (self.x, self.y)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> int:
         return self._xget() if item % 2 == 0 else self._yget()
 
     def __add__(self, hP):
@@ -149,25 +146,27 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
     def __mul__(self, k):
         return _ecdsa.py_point_mul(self.x, self.y, b"%064x" % k).contents
 
-    def _xget(self):
+    def _xget(self) -> int:
         return getattr(self, "_x", _setNget(self, "_x", int(self.x, 16)))
 
-    def _yget(self):
+    def _yget(self) -> int:
         return getattr(self, "_y", _setNget(self, "_y", int(self.y, 16)))
 
     @staticmethod
-    def from_int(value):
+    def from_int(value: int):
         """Build curve point from integer absice."""
         return _ecdsa.hex_point_from_hex_x(b"%064x" % value).contents
 
     @staticmethod
-    def from_hex(value):
-        """Build curve point from hex string absice."""
+    def from_hex(value: typing.Union[bytes, str]):
+        """Build curve point from hex absice."""
         return HexPoint.from_int(int(value, 16))
 
-    def encode(self):
-        """Encode point as a hex bytes."""
-        return (b"03" if self[1] & 1 else b"02") + self.x.zfill(64)
+    def encode(self) -> str:
+        """Encode point as an hexadecimal bytes string."""
+        return (
+            (b"03" if self[1] & 1 else b"02") + self.x.zfill(64)
+        ).decode("utf-8")
 
 
 class HexSig(ctypes.Structure):
@@ -185,26 +184,26 @@ Attributes:
         ("s", ctypes.c_char * 65),
     ]
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value: typing.Any) -> None:
         if attr in HexSig._fields_:
-            delattr(self, "_"+attr, None)
+            delattr(self, "_" + attr, None)
             value = value.zfill(64)
         ctypes.Structure.__setattr__(self, attr, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<secp256k1 signature:\n  r:%s\n  s:%s\n>" % (self.r, self.s)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> int:
         return self._rget() if item % 2 == 0 else self._sget()
 
-    def _rget(self):
+    def _rget(self) -> int:
         return getattr(self, "_r", _setNget(self, "_r", int(self.r, 16)))
 
-    def _sget(self):
+    def _sget(self) -> int:
         return getattr(self, "_s", _setNget(self, "_s", int(self.s, 16)))
 
-    def der(self):
-        """Encode signature as DER hexadecimal bytes string."""
+    def der(self) -> str:
+        """Encode signature as DER hexadecimal string."""
         r = self[0].to_bytes(32, byteorder="big")
         s = self[1].to_bytes(32, byteorder="big")
         r = (b'\x00' if (r[0] & 0x80) == 0x80 else b'') + r
@@ -213,10 +212,10 @@ Attributes:
             b'\x30' + int((len(r)+len(s)+4)).to_bytes(1, 'big') +
             b'\x02' + int(len(r)).to_bytes(1, 'big') + r +
             b'\x02' + int(len(s)).to_bytes(1, 'big') + s
-        )
+        ).decode("utf-8")
 
     @staticmethod
-    def from_der(der):
+    def from_der(der: str):
         """Return HexSig object from a DER signature string."""
         sig = bytearray(binascii.unhexlify(der))
         sig_len = sig[1] + 2
@@ -232,14 +231,17 @@ Attributes:
             b"%064x" % int.from_bytes(sig[s_offset:s_offset + s_len], "big")
         )
 
-    def raw(self):
-        """Encode signature as RAW hexadecimal bytes string."""
-        return self.r.zfill(64) + self.s.zfill(64)
+    def raw(self) -> str:
+        """Encode signature as RAW hexadecimal string."""
+        return (self.r.zfill(64) + self.s.zfill(64)).decode("utf-8")
 
     @staticmethod
-    def from_raw(raw):
-        """Return HexSig object from a RAW signature string."""
-        return HexSig(raw[:64].lstrip(b"0"), raw[64:].lstrip(b"0"))
+    def from_raw(raw: str):
+        """Return HexSig object from RAW hexadecimal string."""
+        return HexSig(
+            raw[:64].lstrip("0").encode("utf-8"),
+            raw[64:].lstrip("0").encode("utf-8")
+        )
 
 
 class PublicKey(HexPoint):
@@ -250,39 +252,39 @@ bytes. It is a subclass of [`HexPoint`](api.md#hexpoint-objects).
 
     @staticmethod
     def decode(enc):
-        """Return PublicKey object from secp256k1-encoded byte or string."""
+        """Return PublicKey object from secp256k1-encoded bytes or string."""
         hPuk = _ecdsa.hex_puk_from_encoded(
-            enc if isinstance(enc, bytes) else enc.encode()
+            enc if isinstance(enc, bytes) else enc.encode("utf-8")
         ).contents
         return PublicKey(hPuk.x, hPuk.y)
 
     @staticmethod
-    def from_hex(value):
-        """Compute a PublicKey object from hexadecimal abcissa."""
+    def from_hex(secret):
+        """Compute a PublicKey object from hexadecimal secret abcissa."""
         hPuk = _ecdsa.hex_puk_from_hex(
-            value if isinstance(value, bytes) else value.encode("utf-8")
+            secret if isinstance(secret, bytes) else secret.encode("utf-8")
         ).contents
         return PublicKey(hPuk.x, hPuk.y)
 
     @staticmethod
-    def from_int(value):
-        """Compute a PublicKey object from integer abcissa."""
+    def from_int(value: int):
+        """Compute a PublicKey object from integer secret abcissa."""
         return PublicKey.from_hex(b"%064x" % value)
 
     @staticmethod
-    def from_seed(seed):
-        """Compute a PublicKey object from byte abcissa."""
+    def from_seed(seed: bytes):
+        """Compute a PublicKey object from bytes secret abcissa."""
         return PublicKey.from_hex(binascii.hexlify(seed))
 
     @staticmethod
-    def from_secret(secret):
+    def from_secret(passphrase: str):
         """Compute a PublicKey object from secret passphrase."""
-        return PublicKey.from_hex(hash_sha256(secret))
+        return PublicKey.from_hex(hash_sha256(passphrase))
 
 
 class KeyRing(int):
 
-    def __new__(self, obj=None):
+    def __new__(self, obj: int = None):
         if isinstance(obj, int):
             return int.__new__(self, obj)
         elif obj is None:
@@ -293,11 +295,11 @@ class KeyRing(int):
         )
         return int.__new__(self, int(h, 16))
 
-    def puk(self):
+    def puk(self) -> PublicKey:
         return PublicKey.from_int(self)
 
-    def sig(self, obj):
-        if isinstance(obj, bytes):
+    def sig(self, obj) -> HexSig:
+        if isinstance(obj, str):
             return (
                 HexSig.from_der if len(obj) > 128 else HexSig.from_raw
             )(obj)
@@ -309,12 +311,15 @@ class KeyRing(int):
 
 class Bcrpt410(KeyRing):
 
-    def sign(self, data):
+    def sign(self, data: typing.Union[str, bytes]) -> HexSig:
         return _schnorr.bcrypto410_sign(
             hash_sha256(data), b"%064x" % self
         ).contents
 
-    def verify(self, data, sig):
+    def verify(
+        self, data: typing.Union[str, bytes],
+        sig: typing.Union[HexSig, str]
+    ) -> bool:
         msg = hash_sha256(data)
         hS = self.sig(sig)
         puk = self.puk()
@@ -323,7 +328,10 @@ class Bcrpt410(KeyRing):
 
 class Schnorr(KeyRing):
 
-    def sign(self, data, k=None, rfc6979=False):
+    def sign(
+        self, data: typing.Union[str, bytes], k: bytes = None,
+        rfc6979: bool = False
+    ) -> HexSig:
         msg = hash_sha256(data)
         self_ = b"%064x" % self
         if k is None:
@@ -335,7 +343,10 @@ class Schnorr(KeyRing):
                 )[0]
         return _schnorr.sign(msg, self_, k).contents
 
-    def verify(self, data, sig):
+    def verify(
+        self, data: typing.Union[str, bytes],
+        sig: typing.Union[HexSig, str]
+    ) -> bool:
         msg = hash_sha256(data)
         hS = self.sig(sig)
         puk = self.puk()
@@ -344,7 +355,10 @@ class Schnorr(KeyRing):
 
 class Ecdsa(KeyRing):
 
-    def sign(self, data, k=None, rfc6979=False, canonical=True):
+    def sign(
+        self, data: typing.Union[str, bytes], k: bytes = None,
+        rfc6979: bool = False, canonical: bool = True
+    ) -> HexSig:
         msg = hash_sha256(data)
         self_ = b"%064x" % self
         if k is None:
@@ -356,7 +370,10 @@ class Ecdsa(KeyRing):
                 )[0]
         return _ecdsa.sign(msg, self_, k, 1 if canonical else 0).contents
 
-    def verify(self, data, sig):
+    def verify(
+        self, data: typing.Union[str, bytes],
+        sig: typing.Union[HexSig, str]
+    ) -> bool:
         msg = hash_sha256(data)
         hS = self.sig(sig)
         puk = self.puk()
@@ -370,6 +387,7 @@ G = HexPoint(
     b"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
     b"483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
 )
+
 # ### DLL PROTOTYPING
 #: _ecdsa library
 _ecdsa = ctypes.CDLL(
