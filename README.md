@@ -69,11 +69,6 @@ Exctract content anywhere in python path defined by `sys.path`.
  - [x] code coverage improvement
  - [x] pydoc-markdown documentation added
 
-## 1.0.4
- - [x] C code improvement
- - [x] code coverage improvement
- - [x] pydoc-markdown documentation added
-
 ## 1.0.3
  - [x] ecdsa signature support
  - [x] bcrypto 4.10 schnorr signature support
