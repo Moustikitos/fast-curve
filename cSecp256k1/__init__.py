@@ -9,13 +9,13 @@ signature about 60 times faster.
 import os
 import sys
 import hmac
-import typing
 import ctypes
 import random
 import hashlib
 import getpass
 import binascii
 
+from typing import Union, Tuple, Any
 from importlib import machinery
 
 # on win32 platform python extensions are *.pyd, *.dll is needed
@@ -30,7 +30,7 @@ def rand_k() -> int:
 
 def rfc6979_k(
     msg: bytes, secret0: bytes, V: bytes = None
-) -> typing.Tuple[int, bytes]:
+) -> Tuple[int, bytes]:
     """Generate a deterministic rfc6967 integer."""
     hasher = hashlib.sha256
     if (V is None):
@@ -61,15 +61,13 @@ def rfc6979_k(
         V = hmac.new(K, V, hasher).digest()
 
 
-def hash_sha256(msg: typing.Union[str, bytes]) -> bytes:
+def hash_sha256(msg: Union[str, bytes]) -> bytes:
     return hashlib.sha256(
         msg if isinstance(msg, bytes) else msg.encode()
     ).hexdigest().encode()
 
 
-def tagged_hash(
-    tag: typing.Union[str, bytes], msg: typing.Union[str, bytes]
-) -> bytes:
+def tagged_hash(tag: Union[str, bytes], msg: Union[str, bytes]) -> bytes:
     msg = binascii.hexlify(msg if isinstance(msg, bytes) else msg.encode())
     return _schnorr.tagged_hash(
         tag if isinstance(tag, bytes) else tag.encode(), msg, len(msg)
@@ -78,7 +76,7 @@ def tagged_hash(
 
 # try to get attribute `attr` from class `cls`. If not found set it and return
 # value
-def _setNget(cls: object, attr: str, value: typing.Any) -> typing.Any:
+def _setNget(cls: object, attr: str, value: Any) -> Any:
     v = getattr(cls, attr, None)
     if v != value:
         setattr(cls, attr, value)
@@ -128,7 +126,7 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
         ("y", ctypes.c_char * 65),
     ]
 
-    def __setattr__(self, attr: str, value: typing.Any) -> None:
+    def __setattr__(self, attr: str, value: Any) -> None:
         if attr in HexPoint._fields_:
             delattr(self, "_" + attr, None)
             value = value.zfill(64)
@@ -158,7 +156,7 @@ Eliptic curve algebra is implemented with python operator `+` and `*`.
         return _ecdsa.hex_point_from_hex_x(b"%064x" % value).contents
 
     @staticmethod
-    def from_hex(value: typing.Union[bytes, str]):
+    def from_hex(value: Union[bytes, str]):
         """Build curve point from hex absice."""
         return HexPoint.from_int(int(value, 16))
 
@@ -184,7 +182,7 @@ Attributes:
         ("s", ctypes.c_char * 65),
     ]
 
-    def __setattr__(self, attr: str, value: typing.Any) -> None:
+    def __setattr__(self, attr: str, value: Any) -> None:
         if attr in HexSig._fields_:
             delattr(self, "_" + attr, None)
             value = value.zfill(64)
@@ -251,7 +249,7 @@ bytes. It is a subclass of [`HexPoint`](api.md#hexpoint-objects).
 """
 
     @staticmethod
-    def decode(enc):
+    def decode(enc: Union[str, bytes]):
         """Return PublicKey object from secp256k1-encoded bytes or string."""
         hPuk = _ecdsa.hex_puk_from_encoded(
             enc if isinstance(enc, bytes) else enc.encode("utf-8")
@@ -298,7 +296,8 @@ class KeyRing(int):
     def puk(self) -> PublicKey:
         return PublicKey.from_int(self)
 
-    def sig(self, obj) -> HexSig:
+    @staticmethod
+    def sig(obj) -> HexSig:
         if isinstance(obj, str):
             return (
                 HexSig.from_der if len(obj) > 128 else HexSig.from_raw
@@ -311,26 +310,28 @@ class KeyRing(int):
 
 class Bcrpt410(KeyRing):
 
-    def sign(self, data: typing.Union[str, bytes]) -> HexSig:
+    def sign(self, data: Union[str, bytes]) -> HexSig:
         return _schnorr.bcrypto410_sign(
             hash_sha256(data), b"%064x" % self
         ).contents
 
+    @staticmethod
     def verify(
-        self, data: typing.Union[str, bytes],
-        sig: typing.Union[HexSig, str]
+        puk: Union[str, PublicKey, KeyRing], data: Union[str, bytes],
+        sig: Union[HexSig, str]
     ) -> bool:
         msg = hash_sha256(data)
-        hS = self.sig(sig)
-        puk = self.puk()
+        hS = KeyRing.sig(sig)
+        puk = PublicKey.decode(puk) if isinstance(puk, str) else \
+            puk.puk() if isinstance(puk, KeyRing) else \
+            puk
         return bool(_schnorr.bcrypto410_verify(msg, puk.x, puk.y, hS.r, hS.s))
 
 
 class Schnorr(KeyRing):
 
     def sign(
-        self, data: typing.Union[str, bytes], k: bytes = None,
-        rfc6979: bool = False
+        self, data: Union[str, bytes], k: bytes = None, rfc6979: bool = False
     ) -> HexSig:
         msg = hash_sha256(data)
         self_ = b"%064x" % self
@@ -343,21 +344,24 @@ class Schnorr(KeyRing):
                 )[0]
         return _schnorr.sign(msg, self_, k).contents
 
+    @staticmethod
     def verify(
-        self, data: typing.Union[str, bytes],
-        sig: typing.Union[HexSig, str]
+        puk: Union[str, PublicKey, KeyRing], data: Union[str, bytes],
+        sig: Union[HexSig, str]
     ) -> bool:
         msg = hash_sha256(data)
-        hS = self.sig(sig)
-        puk = self.puk()
+        hS = KeyRing.sig(sig)
+        puk = PublicKey.decode(puk) if isinstance(puk, str) else \
+            puk.puk() if isinstance(puk, KeyRing) else \
+            puk
         return bool(_schnorr.verify(msg, puk.x, hS.r, hS.s))
 
 
 class Ecdsa(KeyRing):
 
     def sign(
-        self, data: typing.Union[str, bytes], k: bytes = None,
-        rfc6979: bool = False, canonical: bool = True
+        self, data: Union[str, bytes], k: bytes = None, rfc6979: bool = False,
+        canonical: bool = True
     ) -> HexSig:
         msg = hash_sha256(data)
         self_ = b"%064x" % self
@@ -370,13 +374,16 @@ class Ecdsa(KeyRing):
                 )[0]
         return _ecdsa.sign(msg, self_, k, 1 if canonical else 0).contents
 
+    @staticmethod
     def verify(
-        self, data: typing.Union[str, bytes],
-        sig: typing.Union[HexSig, str]
+        puk: Union[PublicKey, KeyRing, str], data: Union[str, bytes],
+        sig: Union[HexSig, str]
     ) -> bool:
         msg = hash_sha256(data)
-        hS = self.sig(sig)
-        puk = self.puk()
+        hS = KeyRing.sig(sig)
+        puk = PublicKey.decode(puk) if isinstance(puk, str) else \
+            puk.puk() if isinstance(puk, KeyRing) else \
+            puk
         return bool(_ecdsa.verify(msg, puk.x, puk.y, hS.r, hS.s))
 
 
