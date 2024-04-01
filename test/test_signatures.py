@@ -71,7 +71,7 @@ try:
         def test_schnorr(self):
             signer = _schnorr.bcrypto410_sign
             sig = signer(msg, pr_key).contents
-            assert sig.raw() == binascii.hexlify(
+            assert sig.raw().encode() == binascii.hexlify(
                 schnorr.bcrypto410_sign(
                     binascii.unhexlify(msg), binascii.unhexlify(pr_key)
                 )

@@ -41,7 +41,7 @@ class TestSchnorrVectors:
             assert secp256k1.PublicKey.from_hex(secret0).x == pubkey
             assert (
                 secp256k1._schnorr.sign(msg, secret0, rnd).contents.raw() ==
-                sig
+                sig.decode()
             ) == result
 
     def testVector3(self):
@@ -54,7 +54,7 @@ class TestSchnorrVectors:
         assert secp256k1.PublicKey.from_hex(secret0).x == pubkey
         assert (
             secp256k1._schnorr.sign(msg, secret0, rnd).contents.raw() ==
-            sig
+            sig.decode()
         ) == result
 
         msg_mod_p = b"%064x" % (int(msg, 16) % secp256k1.p)
