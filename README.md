@@ -2,15 +2,6 @@
 
 `ctypes` implementation for bitcoin curve `secp256k1`. It is 100 times faster than pure python implementation and may be even faster if used in lower level development languages.
 
-## Support this project
- 
- [![Liberapay receiving](https://img.shields.io/liberapay/goal/Toons?logo=liberapay)](https://liberapay.com/Toons/donate)
- 
- [Buy &#1126;](https://bittrex.com/Account/Register?referralCode=NW5-DQO-QMT) and:
- 
-   * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
-   * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
-
 
 # Dependencies
 
@@ -54,6 +45,9 @@ Exctract content anywhere in python path defined by `sys.path`.
 
 # Versions
 
+## 1.1.2
+ - [x] typing update
+
 ## 1.1.1
  - [x] exclusive use of `hash_sha256_s` in `schnorr.c`
 
@@ -73,3 +67,9 @@ Exctract content anywhere in python path defined by `sys.path`.
  - [x] ecdsa signature support
  - [x] bcrypto 4.10 schnorr signature support
  - [x] [BIP0340 sipa](https://github.com/sipa/bips/tree/3b1fb9600b938172dd98a63e4906a861af9c3ab0/bip-0340) shnorr signatures support
+
+## Support this project
+
+<!-- [![Liberapay receiving](https://img.shields.io/liberapay/goal/Toons?logo=liberapay)](https://liberapay.com/Toons/donate) -->
+[![Paypal me](https://img.shields.io/badge/PayPal-toons-00457C?logo=paypal&logoColor=white)](https://paypal.me/toons)
+[![Bitcoin](https://img.shields.io/badge/Donate-bc1q6aqr0hfq6shwlaux8a7ydvncw53lk2zynp277x-ff9900?logo=bitcoin)](https://github.com/Moustikitos/python-mainsail/blob/master/docs/img/bc1q6aqr0hfq6shwlaux8a7ydvncw53lk2zynp277x.png)
