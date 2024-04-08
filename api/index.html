@@ -13,6 +13,7 @@
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+        <link href="../style.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
         <script>hljs.highlightAll();</script> 
     </head>
@@ -111,7 +112,7 @@ signature about 60 times faster.</p>
 <h4 id="rfc6979_k">rfc6979_k<a class="headerlink" href="#rfc6979_k" title="Permanent link">#</a></h4>
 <pre><code class="language-python">def rfc6979_k(msg: bytes,
               secret0: bytes,
-              V: bytes = None) -&gt; typing.Tuple[int, bytes]
+              V: bytes = None) -&gt; Tuple[int, bytes]
 </code></pre>
 <p>Generate a deterministic rfc6967 integer.</p>
 <p><a id="cSecp256k1.HexPoint"></a></p>
@@ -156,7 +157,7 @@ def from_int(value: int)
 <p><a id="cSecp256k1.HexPoint.from_hex"></a></p>
 <h4 id="from_hex">from_hex<a class="headerlink" href="#from_hex" title="Permanent link">#</a></h4>
 <pre><code class="language-python">@staticmethod
-def from_hex(value: typing.Union[bytes, str])
+def from_hex(value: Union[bytes, str])
 </code></pre>
 <p>Build curve point from hex absice.</p>
 <p><a id="cSecp256k1.HexPoint.encode"></a></p>
@@ -206,7 +207,7 @@ bytes. It is a subclass of <a href="./#hexpoint-objects"><code>HexPoint</code></
 <p><a id="cSecp256k1.PublicKey.decode"></a></p>
 <h4 id="decode">decode<a class="headerlink" href="#decode" title="Permanent link">#</a></h4>
 <pre><code class="language-python">@staticmethod
-def decode(enc)
+def decode(enc: Union[str, bytes])
 </code></pre>
 <p>Return PublicKey object from secp256k1-encoded bytes or string.</p>
 <p><a id="cSecp256k1.PublicKey.from_hex"></a></p>
