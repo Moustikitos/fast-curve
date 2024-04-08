@@ -24,7 +24,7 @@ Generate a random secp256k1 integer (in range [1..p]).
 ```python
 def rfc6979_k(msg: bytes,
               secret0: bytes,
-              V: bytes = None) -> typing.Tuple[int, bytes]
+              V: bytes = None) -> Tuple[int, bytes]
 ```
 
 Generate a deterministic rfc6967 integer.
@@ -89,7 +89,7 @@ Build curve point from integer absice.
 
 ```python
 @staticmethod
-def from_hex(value: typing.Union[bytes, str])
+def from_hex(value: Union[bytes, str])
 ```
 
 Build curve point from hex absice.
@@ -179,7 +179,7 @@ bytes. It is a subclass of [`HexPoint`](api.md#hexpoint-objects).
 
 ```python
 @staticmethod
-def decode(enc)
+def decode(enc: Union[str, bytes])
 ```
 
 Return PublicKey object from secp256k1-encoded bytes or string.

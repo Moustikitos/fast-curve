@@ -35,6 +35,8 @@ renderer:
     repo_url: https://github.com/Moustikitos/fast-curve
     repo_name: GitHub
     copyright: Copyright &copy; 2021 THOORENS Bruno - MIT licence
+    extra_css:
+      - style.css
     theme:
       name: mkdocs
       nav_style: light
